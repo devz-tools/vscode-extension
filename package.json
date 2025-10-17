@@ -2,22 +2,151 @@
   "name": "devz-tools",
   "displayName": "DevZ Tools",
   "description": "A community VSCode extension for developing DayZ mods, mission files, and server experiences.",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "engines": {
     "vscode": "^1.105.0"
   },
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "workspaceContains:src/config.cpp"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "devz-tools.helloWorld",
-        "title": "Hello World"
+        "command": "devz-tools.packPBO",
+        "title": "DevZ: Pack PBO"
+      },
+      {
+        "command": "devz-tools.startServerAndClient",
+        "title": "DevZ: Start Server and Client"
+      },
+      {
+        "command": "devz-tools.wipeServerData",
+        "title": "DevZ: Wipe Server Data"
+      },
+      {
+        "command": "devz-tools.wipeClientData",
+        "title": "DevZ: Wipe Client Data"
+      },
+      {
+        "command": "devz-tools.openClientDirectory",
+        "title": "DevZ: Open DayZ Client Directory"
+      },
+      {
+        "command": "devz-tools.openServerDirectory",
+        "title": "DevZ: Open DayZ Server Directory"
+      },
+      {
+        "command": "devz-tools.openToolsDirectory",
+        "title": "DevZ: Open DayZ Tools Directory"
+      },
+      {
+        "command": "devz-tools.openProjectDriveDirectory",
+        "title": "DevZ: Open DayZ Project Drive Directory"
+      },
+      {
+        "command": "devz-tools.openWorkshopDirectory",
+        "title": "DevZ: Open Steam Workshop Directory"
+      },
+      {
+        "command": "devz-tools.showModsSummary",
+        "title": "DevZ: Show Mods Summary"
       }
-    ]
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "devz-tools.packPBO",
+          "when": "workspaceContains:src/config.cpp"
+        },
+        {
+          "command": "devz-tools.startServerAndClient",
+          "when": "workspaceContains:src/config.cpp"
+        },
+        {
+          "command": "devz-tools.wipeServerData",
+          "when": "workspaceContains:src/config.cpp"
+        },
+        {
+          "command": "devz-tools.wipeClientData",
+          "when": "workspaceContains:src/config.cpp"
+        },
+        {
+          "command": "devz-tools.openClientDirectory"
+        },
+        {
+          "command": "devz-tools.openServerDirectory"
+        },
+        {
+          "command": "devz-tools.openToolsDirectory"
+        },
+        {
+          "command": "devz-tools.openProjectDriveDirectory"
+        },
+        {
+          "command": "devz-tools.openWorkshopDirectory"
+        },
+        {
+          "command": "devz-tools.showModsSummary"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "DevZ Tools",
+      "properties": {
+        "devz-tools.dayzClientDir": {
+          "type": "string",
+          "default": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\DayZ",
+          "description": "Absolute path to the DayZ Client installation directory"
+        },
+        "devz-tools.dayzServerDir": {
+          "type": "string",
+          "default": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\DayZServer",
+          "description": "Absolute path to the DayZ Server installation directory"
+        },
+        "devz-tools.dayzToolsDir": {
+          "type": "string",
+          "default": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\DayZ Tools",
+          "description": "Absolute path to the DayZ Tools installation directory"
+        },
+        "devz-tools.steamWorkshopDir": {
+          "type": "string",
+          "default": "C:\\Program Files (x86)\\Steam\\steamapps\\workshop\\content\\221100",
+          "description": "Absolute path to the Steam Workshop content directory for DayZ"
+        },
+        "devz-tools.dayzProjectDir": {
+          "type": "string",
+          "default": "P:\\",
+          "description": "Absolute to the DayZ Project directory extracted by DayZ Tools. The files in this directory are used as a reference to validate against when checking the mod."
+        },
+        "devz-tools.modName": {
+          "type": "string",
+          "default": "MyMod",
+          "description": "Name of the mod being developed"
+        },
+        "devz-tools.serverAddress": {
+          "type": "string",
+          "default": "127.0.0.1:2302",
+          "description": "The IP and Port of the server your client will connect to on startup. Find this by starting the server, then checking the LAN tab in the DayZ Launcher. Each computer may use a different local IP address space."
+        },
+        "devz-tools.additionalMods": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "List of additional mod paths and IDs to load (e.g., ['C:\\path\\to\\@CustomMod1', 'C:\\path\\to\\@CustomMod2', '1234567890', '0987654321']). These should be either absolute paths to mods stored on your computer, or the numeric Steam Workshop IDs of mods that you are subscribed to."
+        },
+        "devz-tools.enableModTooltips": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable hover tooltips and inline hints showing mod names in settings.json files"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "pnpm run package",
