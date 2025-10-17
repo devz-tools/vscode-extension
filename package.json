@@ -163,8 +163,10 @@
     "check-types": "tsc --noEmit",
     "lint": "eslint src",
     "test": "vscode-test",
-    "vscode:package": "vsce package",
-    "vscode:publish": "vsce publish"
+    "swap-readme:prepare": "pwsh -ExecutionPolicy Bypass -File scripts/swap-readme.ps1 prepare",
+    "swap-readme:restore": "pwsh -ExecutionPolicy Bypass -File scripts/swap-readme.ps1 restore",
+    "vscode:package": "pnpm run swap-readme:prepare && vsce package && pnpm run swap-readme:restore",
+    "vscode:publish": "pnpm run swap-readme:prepare && vsce publish && pnpm run swap-readme:restore"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",

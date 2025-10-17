@@ -64,9 +64,11 @@ jobs:
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             if [[ -n "${{ github.event.inputs.version }}" ]]; then
               VERSION_ARG="--packagePath devz-tools-${{ github.event.inputs.version }}.vsix"
+              pnpm run swap-readme:prepare
               vsce package ${{ github.event.inputs.version }}
+              pnpm run swap-readme:restore
             else
-              vsce package
+              pnpm run vscode:package
               VERSION_ARG=""
             fi
             
@@ -76,11 +78,17 @@ jobs:
               PRE_RELEASE_ARG=""
             fi
             
-            vsce publish $PRE_RELEASE_ARG $VERSION_ARG
+            if [[ -n "$VERSION_ARG" ]]; then
+              vsce publish $PRE_RELEASE_ARG $VERSION_ARG
+            else
+              pnpm run vscode:publish $PRE_RELEASE_ARG
+            fi
           else
             # For releases, extract version from tag
             TAG_VERSION=${GITHUB_REF#refs/tags/v}
+            pnpm run swap-readme:prepare
             vsce package $TAG_VERSION
+            pnpm run swap-readme:restore
             
             # Check if it's a pre-release
             if [[ "${{ github.event.release.prerelease }}" == "true" ]]; then
