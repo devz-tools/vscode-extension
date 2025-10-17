@@ -1,0 +1,98 @@
+name: Publish to VSCode Marketplace
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (leave empty to use package.json version)'
+        required: false
+        type: string
+      pre-release:
+        description: 'Publish as pre-release'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+          
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: Type check
+        run: pnpm run check-types
+        
+      - name: Lint code
+        run: pnpm run lint
+        
+      - name: Build extension
+        run: pnpm run package
+        
+      - name: Run tests
+        run: |
+          # Install vscode test dependencies
+          sudo apt-get update
+          sudo apt-get install -y libnss3 libatk-bridge2.0-0 libdrm2 libgtk-3-0 libgbm1
+          
+          # Run tests with xvfb for headless environment
+          xvfb-run -a pnpm test
+          
+      - name: Install vsce
+        run: pnpm add -g @vscode/vsce
+        
+      - name: Publish to VSCode Marketplace
+        env:
+          VSCE_PAT: ${{ secrets.VSCODE_MARKETPLACE_TOKEN }}
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            if [[ -n "${{ github.event.inputs.version }}" ]]; then
+              VERSION_ARG="--packagePath devz-tools-${{ github.event.inputs.version }}.vsix"
+              vsce package ${{ github.event.inputs.version }}
+            else
+              vsce package
+              VERSION_ARG=""
+            fi
+            
+            if [[ "${{ github.event.inputs.pre-release }}" == "true" ]]; then
+              PRE_RELEASE_ARG="--pre-release"
+            else
+              PRE_RELEASE_ARG=""
+            fi
+            
+            vsce publish $PRE_RELEASE_ARG $VERSION_ARG
+          else
+            # For releases, extract version from tag
+            TAG_VERSION=${GITHUB_REF#refs/tags/v}
+            vsce package $TAG_VERSION
+            
+            # Check if it's a pre-release
+            if [[ "${{ github.event.release.prerelease }}" == "true" ]]; then
+              vsce publish --pre-release --packagePath devz-tools-$TAG_VERSION.vsix
+            else
+              vsce publish --packagePath devz-tools-$TAG_VERSION.vsix
+            fi
+          fi
+          
+      - name: Upload VSIX as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vsix-package
+          path: "*.vsix"
+          retention-days: 30
