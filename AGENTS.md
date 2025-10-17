@@ -46,6 +46,141 @@
 ### Test Environment
 - `test-workspace/` - Complete DayZ mod boilerplate for testing (git submodule)
 
+## **CRITICAL**: Maintaining AGENTS.md Context
+
+### **MANDATORY UPDATE REQUIREMENT**
+
+**⚠️ IMPORTANT**: This AGENTS.md file contains essential context for AI tools and human developers. It MUST be updated whenever the project structure changes to maintain accurate context and prevent misunderstandings.
+
+#### When to Update AGENTS.md
+
+**ALWAYS update this file when making ANY of these changes:**
+
+1. **File Structure Changes**:
+   - Adding new files or directories to `src/`
+   - Moving, renaming, or deleting existing files
+   - Creating new subdirectories or reorganizing folder structure
+   - Adding new build artifacts or output directories
+
+2. **New Features or Commands**:
+   - Adding new VS Code commands to `package.json`
+   - Creating new configuration settings
+   - Implementing new features or capabilities
+   - Adding new extension activation events
+
+3. **Dependency Changes**:
+   - Adding new npm packages or dependencies
+   - Changing build tools or configuration (esbuild, ESLint, etc.)
+   - Modifying the build process or scripts
+   - Adding new external tool requirements
+
+4. **Configuration Changes**:
+   - Adding or modifying VS Code settings
+   - Changing default values or validation rules
+   - Adding new required paths or directories
+   - Modifying the activation context or requirements
+
+5. **Testing Structure Changes**:
+   - Adding new test files or test directories
+   - Changing the test workspace structure
+   - Adding new testing approaches or frameworks
+   - Modifying CI/CD pipeline or GitHub Actions
+
+#### How to Update AGENTS.md
+
+**Follow this checklist when updating:**
+
+1. **Update Project Structure Section**:
+   ```markdown
+   # Update the file tree under "Project Structure"
+   # Add descriptions for new files/directories
+   # Remove references to deleted files
+   # Update paths that have changed
+   ```
+
+2. **Update Feature Descriptions**:
+   ```markdown
+   # Add new commands to "Key Features & Commands"
+   # Update configuration settings in "Configuration System"
+   # Add new activation events if applicable
+   ```
+
+3. **Update Technical Context**:
+   ```markdown
+   # Modify "Important Notes for AI Tools" if new patterns emerge
+   # Update "Development Workflow" for new processes
+   # Add new "Technical Considerations" as needed
+   ```
+
+4. **Update Dependencies & Build Info**:
+   ```markdown
+   # Update "Build System" section for new tools
+   # Modify dependency information
+   # Update build scripts list
+   ```
+
+5. **Update README Files**:
+   ```markdown
+   # Update README.md for developer/contributor changes
+   # Update README-MARKETPLACE.md for user-facing changes
+   # Ensure both files reflect new features or capabilities
+   # Keep installation/setup instructions current
+   ```
+
+#### Validation Checklist
+
+**Before committing changes, verify AGENTS.md includes:**
+
+- [ ] **Accurate File Tree**: All current files and directories are documented
+- [ ] **Complete Command List**: All VS Code commands from package.json are listed
+- [ ] **Current Settings**: All configuration options are documented
+- [ ] **Updated Dependencies**: New packages and tools are mentioned
+- [ ] **Correct Paths**: All referenced paths match actual structure
+- [ ] **New Features**: Recently added capabilities are described
+- [ ] **Build Process**: Current build scripts and processes are accurate
+- [ ] **Testing Info**: Test structure and approach are current
+- [ ] **README Files Updated**: Both README.md and README-MARKETPLACE.md reflect changes
+- [ ] **No Explanatory Markdown**: No new markdown files created to explain changes
+
+#### Why This Matters
+
+**For AI Tools**: AI assistants rely on this context to understand the project structure and make appropriate suggestions. Outdated information leads to incorrect recommendations.
+
+**For Developers**: New team members and contributors use this file to understand the project quickly. Accurate information prevents confusion and speeds onboarding.
+
+**For Maintenance**: This file serves as documentation of architectural decisions and helps maintain consistency across changes.
+
+#### Example Update Process
+
+```bash
+# 1. Make your structural changes
+git add src/newFeature.ts
+git add package.json  # if adding commands
+
+# 2. Update AGENTS.md BEFORE committing
+# - Add newFeature.ts to file structure
+# - Update command list if new commands added
+# - Add any new configuration settings
+
+# 3. Commit everything together
+git add AGENTS.md
+git commit -m "feat: add new feature and update AGENTS.md context"
+```
+
+#### Documentation Standards & Prohibitions
+
+**REQUIRED README Updates**: When making changes that affect user experience or developer workflow:
+- **README.md**: Update for contributor/developer-facing changes (setup, development process, technical details)
+- **README-MARKETPLACE.md**: Update for user-facing changes (features, installation, usage instructions)
+
+**PROHIBITED**: Do NOT create explanatory markdown files to document changes or conversations:
+- ❌ No REFACTORING.md, CHANGES.md, UPDATES.md, or similar files
+- ❌ No markdown files explaining what occurred in chat sessions or development discussions
+- ❌ No temporary documentation files that duplicate information in existing docs
+- ✅ Instead: Update existing documentation (AGENTS.md, README files) directly
+
+**Remember**: Keeping AGENTS.md current is not optional—it's a critical part of maintaining this project. Outdated context documentation can lead to significant development issues and confusion.
+
 ## Key Features & Commands
 
 ### Core Commands
@@ -329,7 +464,7 @@ Before submitting any changes, verify:
 - [ ] **Function Size**: Complex functions extracted and documented
 - [ ] **Import Organization**: Imports properly organized and minimal
 - [ ] **Test Coverage**: New functions have corresponding tests
-- [ ] **Documentation**: Updated relevant documentation (AGENTS.md, REFACTORING.md)
+- [ ] **Documentation**: Updated relevant documentation (AGENTS.md, README files)
 
 ### Anti-Patterns to Avoid
 
@@ -352,7 +487,7 @@ When making changes:
 3. **Add Documentation**: Write JSDoc before implementation
 4. **Extract Complex Logic**: Keep functions focused and single-purpose
 5. **Add Tests**: Write tests for new functionality
-6. **Update Documentation**: Update this file and REFACTORING.md if needed
+6. **Update Documentation**: Update this file and README files as needed
 
 ### Performance Considerations
 
