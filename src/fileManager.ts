@@ -3,8 +3,12 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { spawn } from 'child_process';
 import { getExtensionSettings, getWorkspaceRoot, buildModString } from './config';
+import { confirmDestructiveAction } from './utils';
 
-// Function to clear old log files
+/**
+ * Clears old log files from the specified profile directory
+ * @param profileDir - The profile directory path to clean
+ */
 export function clearOldLogs(profileDir: string): void {
     try {
         if (!fs.existsSync(profileDir)) {
@@ -39,7 +43,11 @@ export function clearOldLogs(profileDir: string): void {
     }
 }
 
-// Function equivalent to create_mod_base() from Python
+/**
+ * Creates the base mod directory structure
+ * Creates out/@ModName/addons directory structure if it doesn't exist
+ * @throws Error if directory creation fails
+ */
 export async function createModBase(): Promise<void> {
     try {
         const settings = getExtensionSettings();
@@ -68,7 +76,10 @@ export async function createModBase(): Promise<void> {
     }
 }
 
-// Function equivalent to pack_pbo() from Python
+/**
+ * Packs the mod source files into a PBO using DayZ Tools AddonBuilder
+ * @throws Error if the packing process fails
+ */
 export async function packPBO(): Promise<void> {
     try {
         const settings = getExtensionSettings();
@@ -169,21 +180,22 @@ export async function packPBO(): Promise<void> {
     }
 }
 
-// Function to wipe server data
+/**
+ * Wipes server data by deleting ServerProfile and ServerStorage directories
+ * Requires user confirmation before proceeding
+ * @throws Error if deletion fails
+ */
 export async function wipeServerData(): Promise<void> {
     try {
         // Ask for confirmation
-        const confirmation = await vscode.window.showWarningMessage(
+        const confirmed = await confirmDestructiveAction(
             'This will permanently delete ServerProfile and ServerStorage directories. Are you sure?',
-            { modal: true },
             'Yes, Delete Server Data'
         );
 
-        if (confirmation !== 'Yes, Delete Server Data') {
+        if (!confirmed) {
             return;
-        }
-
-        const repoDir = getWorkspaceRoot();
+        } const repoDir = getWorkspaceRoot();
         const outDir = path.join(repoDir, 'out');
         const serverProfileDir = path.join(outDir, 'ServerProfile');
         const serverStorageDir = path.join(outDir, 'ServerStorage');
@@ -208,21 +220,22 @@ export async function wipeServerData(): Promise<void> {
     }
 }
 
-// Function to wipe client data
+/**
+ * Wipes client data by deleting the ClientProfile directory
+ * Requires user confirmation before proceeding
+ * @throws Error if deletion fails
+ */
 export async function wipeClientData(): Promise<void> {
     try {
         // Ask for confirmation
-        const confirmation = await vscode.window.showWarningMessage(
+        const confirmed = await confirmDestructiveAction(
             'This will permanently delete the ClientProfile directory. Are you sure?',
-            { modal: true },
             'Yes, Delete Client Data'
         );
 
-        if (confirmation !== 'Yes, Delete Client Data') {
+        if (!confirmed) {
             return;
-        }
-
-        const repoDir = getWorkspaceRoot();
+        } const repoDir = getWorkspaceRoot();
         const outDir = path.join(repoDir, 'out');
         const clientProfileDir = path.join(outDir, 'ClientProfile');
 

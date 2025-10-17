@@ -1,17 +1,12 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import { DevZSettings, ValidationResult } from './types';
+import { DevZSettings, ValidationResult, PathValidationResult } from './types';
 import { getExtensionSettings } from './config';
-
-export interface PathValidationResult {
-    path: string;
-    exists: boolean;
-    error?: string;
-}
 
 /**
  * Validates all configured paths and settings on startup
+ * @returns A validation result containing any errors and warnings found
  */
 export async function validateStartupConfiguration(): Promise<ValidationResult> {
     const result: ValidationResult = {

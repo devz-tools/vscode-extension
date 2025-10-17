@@ -7,7 +7,10 @@ import { getExtensionSettings, getWorkspaceRoot, buildModString } from './config
 import { clearOldLogs } from './fileManager';
 import { updateStatusBar } from './statusBar';
 
-// Function to aggressively kill DayZ processes using PowerShell
+/**
+ * Aggressively kills all DayZ-related processes using PowerShell
+ * This is used as a fallback when normal process termination fails
+ */
 function killDayZProcesses(): void {
     // Kill all DayZ related processes using PowerShell
     const powershellCommand = `
@@ -28,7 +31,11 @@ function killDayZProcesses(): void {
     });
 }
 
-// Function to stop all processes
+/**
+ * Stops all running DayZ processes (server and client)
+ * @param state - The extension state containing process references
+ * @param statusBarItem - The status bar item to update during shutdown
+ */
 export function stopAllProcesses(state: ExtensionState, statusBarItem: vscode.StatusBarItem): void {
     state.isShuttingDown = true;
     updateStatusBar(statusBarItem, state);

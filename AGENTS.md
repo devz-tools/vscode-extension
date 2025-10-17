@@ -154,3 +154,218 @@ The project uses a dual-README system:
 - Process spawning requires platform-specific handling
 - Configuration validation is critical for user experience
 - Status bar and UI integration should follow VS Code UX patterns
+
+## Code Quality Standards & Refactoring Guidelines
+
+### **MANDATORY**: These standards must be followed for all code changes
+
+#### 1. Documentation Requirements
+
+**JSDoc Comments**: ALL public functions, interfaces, and classes MUST have comprehensive JSDoc documentation.
+
+```typescript
+/**
+ * Brief description of what the function does
+ * @param paramName - Description of the parameter including type constraints
+ * @param optionalParam - Description (optional parameter)
+ * @returns Description of what is returned
+ * @throws Description of when/what errors are thrown
+ * @example
+ * ```typescript
+ * const result = myFunction('example', 42);
+ * ```
+ */
+export function myFunction(paramName: string, optionalParam?: number): Promise<string> {
+    // Implementation
+}
+```
+
+**Interface Documentation**: Every interface property must be documented:
+
+```typescript
+/**
+ * Interface describing configuration settings
+ */
+export interface MySettings {
+    /** Path to the installation directory */
+    installPath: string;
+    /** Whether feature is enabled (default: true) */
+    enabled?: boolean;
+}
+```
+
+#### 2. Error Handling Standards
+
+**REQUIRED**: Use standardized error handling patterns from `utils.ts`:
+
+```typescript
+// ✅ CORRECT: Use createCommandHandler for VS Code commands
+const myCommand = vscode.commands.registerCommand('my.command',
+    createCommandHandler('My Command', async () => {
+        await someOperation();
+    })
+);
+
+// ✅ CORRECT: Use safeExecute for operations that might fail
+const result = await safeExecute(
+    () => riskyOperation(),
+    'Failed to perform risky operation'
+);
+
+// ❌ INCORRECT: Raw try-catch without standardized handling
+try {
+    await someOperation();
+} catch (error) {
+    vscode.window.showErrorMessage(`Failed: ${error}`);
+}
+```
+
+**Silent Error Handling**: For functions that handle their own error display:
+
+```typescript
+// ✅ CORRECT: Use createSilentCommandHandler
+const directoryCommand = vscode.commands.registerCommand('open.directory',
+    createSilentCommandHandler(openDirectory)
+);
+```
+
+#### 3. Type Safety Requirements
+
+**Interface Consolidation**: All interfaces MUST be defined in `types.ts` to prevent duplication:
+
+```typescript
+// ✅ CORRECT: Import from centralized types
+import { ModInfo, DevZSettings, ValidationResult } from './types';
+
+// ❌ INCORRECT: Defining interfaces locally when they exist in types.ts
+interface ModInfo { /* ... */ }  // DON'T DO THIS
+```
+
+**Optional Properties**: Handle optional properties safely:
+
+```typescript
+// ✅ CORRECT: Safe handling of optional properties
+const size = modInfo.size || 0;
+const sortedMods = mods.sort((a, b) => (b.size || 0) - (a.size || 0));
+
+// ❌ INCORRECT: Direct access to optional properties
+const size = modInfo.size;  // Could be undefined
+```
+
+#### 4. Utility Function Usage
+
+**MANDATORY**: Use shared utilities instead of duplicating code:
+
+```typescript
+// ✅ CORRECT: Use shared utilities
+import { formatBytes, confirmDestructiveAction, delay } from './utils';
+
+const sizeText = formatBytes(1024);
+const confirmed = await confirmDestructiveAction('Delete data?', 'Yes, Delete');
+await delay(1000);
+
+// ❌ INCORRECT: Implementing these functions locally
+function formatBytes(bytes: number) { /* duplicate code */ }
+```
+
+#### 5. Function Extraction Guidelines
+
+**Complex Logic**: Extract complex logic into separate, documented functions:
+
+```typescript
+// ✅ CORRECT: Extracted and documented
+/**
+ * Handles the start server and client command with proper process management
+ * @param statusBarItems - The status bar items for UI updates
+ */
+async function handleStartServerAndClient(statusBarItems: StatusBarItems): Promise<void> {
+    // Complex implementation
+}
+
+// ❌ INCORRECT: Inline complex logic in command registration
+vscode.commands.registerCommand('command', async () => {
+    // 50+ lines of complex logic here
+});
+```
+
+#### 6. Import Organization
+
+**Standard Order**: Organize imports in this order:
+1. Node.js built-ins
+2. Third-party packages (vscode, etc.)
+3. Local imports (grouped by type)
+
+```typescript
+// ✅ CORRECT: Organized imports
+import * as fs from 'fs';
+import * as path from 'path';
+import * as vscode from 'vscode';
+import { DevZSettings, ExtensionState } from './types';
+import { getExtensionSettings } from './config';
+import { createCommandHandler, delay } from './utils';
+```
+
+#### 7. Testing Requirements
+
+**Test Coverage**: ALL new functions must have corresponding tests:
+
+```typescript
+// ✅ REQUIRED: Test for each new utility function
+test('myFunction should handle edge cases correctly', () => {
+    assert.strictEqual(myFunction('test'), 'expected');
+    assert.throws(() => myFunction(''), 'Should throw for empty input');
+});
+```
+
+### Code Review Checklist
+
+Before submitting any changes, verify:
+
+- [ ] **JSDoc Comments**: All public functions have comprehensive JSDoc
+- [ ] **Error Handling**: Uses standardized patterns from utils.ts
+- [ ] **Type Safety**: No direct access to optional properties without null checks
+- [ ] **No Duplication**: Shared utilities used instead of duplicate code
+- [ ] **Interface Usage**: All interfaces imported from types.ts
+- [ ] **Function Size**: Complex functions extracted and documented
+- [ ] **Import Organization**: Imports properly organized and minimal
+- [ ] **Test Coverage**: New functions have corresponding tests
+- [ ] **Documentation**: Updated relevant documentation (AGENTS.md, REFACTORING.md)
+
+### Anti-Patterns to Avoid
+
+**❌ NEVER DO THESE:**
+
+1. **Duplicate Utility Functions**: Don't recreate formatBytes, delay, etc.
+2. **Raw Try-Catch**: Don't use raw try-catch for command error handling
+3. **Inline Complex Logic**: Don't put 20+ lines in command handlers
+4. **Local Interface Definitions**: Don't redefine interfaces that exist in types.ts
+5. **Missing Documentation**: Don't submit public functions without JSDoc
+6. **Unsafe Optional Access**: Don't access optional properties without checks
+7. **Inconsistent Error Messages**: Don't vary error message formats
+
+### Refactoring Workflow
+
+When making changes:
+
+1. **Check Existing Patterns**: Look for similar existing code first
+2. **Use Shared Utilities**: Import from utils.ts and types.ts
+3. **Add Documentation**: Write JSDoc before implementation
+4. **Extract Complex Logic**: Keep functions focused and single-purpose
+5. **Add Tests**: Write tests for new functionality
+6. **Update Documentation**: Update this file and REFACTORING.md if needed
+
+### Performance Considerations
+
+- **Memory Management**: Dispose VS Code resources properly
+- **Process Cleanup**: Always clean up spawned processes
+- **Cache Management**: Clear caches when appropriate
+- **Import Efficiency**: Only import what's needed
+
+### Future-Proofing
+
+- **Modular Design**: Keep functions small and focused
+- **Interface Stability**: Design interfaces for future extension
+- **Backward Compatibility**: Maintain existing public APIs
+- **Configuration Flexibility**: Use VS Code settings for user preferences
+
+**Remember**: These guidelines ensure code quality, maintainability, and consistency across the entire extension codebase. Following them is not optional—it's required for all contributions.

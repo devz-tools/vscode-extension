@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
-import { getModsSummary, ModInfo } from './directoryManager';
+import { getModsSummary, formatBytes } from './directoryManager';
+import { ModInfo } from './types';
 
 export class ModHoverProvider implements vscode.HoverProvider {
     private modInfoCache: Map<string, ModInfo> = new Map();
@@ -76,7 +77,7 @@ export class ModHoverProvider implements vscode.HoverProvider {
             }
 
             hoverContent.appendMarkdown(`📋 **ID:** ${modInfo.id}\n\n`);
-            hoverContent.appendMarkdown(`📁 **Size:** ${this.formatBytes(modInfo.size)}\n\n`);
+            hoverContent.appendMarkdown(`📁 **Size:** ${formatBytes(modInfo.size || 0)}\n\n`);
             hoverContent.appendMarkdown(`📂 **Path:** \`${modInfo.path}\`\n\n`);
 
             if (modInfo.workshopUrl) {
@@ -116,16 +117,6 @@ export class ModHoverProvider implements vscode.HoverProvider {
         } catch (error) {
             console.error('Failed to update mod info cache:', error);
         }
-    }
-
-    private formatBytes(bytes: number): string {
-        if (bytes === 0) { return '0 Bytes'; }
-
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
 
     public clearCache(): void {
@@ -217,7 +208,7 @@ export class ModInlayHintsProvider implements vscode.InlayHintsProvider {
                             vscode.InlayHintKind.Type
                         );
 
-                        hint.tooltip = `**${modInfo.name}**\n\nSize: ${this.formatBytes(modInfo.size)}\nPath: ${modInfo.path}${isCommented ? '\n\n*This mod is currently commented out*' : ''}`;
+                        hint.tooltip = `**${modInfo.name}**\n\nSize: ${formatBytes(modInfo.size || 0)}\nPath: ${modInfo.path}${isCommented ? '\n\n*This mod is currently commented out*' : ''}`;
                         hints.push(hint);
                     }
                 }
@@ -249,16 +240,6 @@ export class ModInlayHintsProvider implements vscode.InlayHintsProvider {
         } catch (error) {
             console.error('Failed to update mod info cache:', error);
         }
-    }
-
-    private formatBytes(bytes: number): string {
-        if (bytes === 0) { return '0 Bytes'; }
-
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
 
     public clearCache(): void {

@@ -3,23 +3,10 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { promisify } from 'util';
 import { getExtensionSettings } from './config';
+import { ModInfo, ModSummary } from './types';
 
 const stat = promisify(fs.stat);
 const readdir = promisify(fs.readdir);
-
-export interface ModInfo {
-    id: string;
-    name: string;
-    path: string;
-    size: number;
-    workshopUrl?: string;
-}
-
-export interface ModSummary {
-    mods: ModInfo[];
-    totalSize: number;
-    totalCount: number;
-}
 
 /**
  * Opens a directory in the default file explorer
@@ -186,7 +173,8 @@ async function getModInfo(modId: string, modPath: string): Promise<ModInfo> {
         name,
         path: modPath,
         size,
-        workshopUrl
+        workshopUrl,
+        isWorkshop: /^\d+$/.test(modId)
     };
 }
 
@@ -215,7 +203,7 @@ export async function getModsSummary(): Promise<ModSummary> {
 
             const modInfo = await getModInfo(modId, modPath);
             mods.push(modInfo);
-            totalSize += modInfo.size;
+            totalSize += modInfo.size || 0;
         } catch (error) {
             // Mod doesn't exist, add a placeholder entry
             mods.push({
@@ -223,7 +211,8 @@ export async function getModsSummary(): Promise<ModSummary> {
                 name: `Missing Mod: ${modId}`,
                 path: modPath,
                 size: 0,
-                workshopUrl: /^\d+$/.test(modId) ? `https://steamcommunity.com/sharedfiles/filedetails/?id=${modId}` : undefined
+                workshopUrl: /^\d+$/.test(modId) ? `https://steamcommunity.com/sharedfiles/filedetails/?id=${modId}` : undefined,
+                isWorkshop: /^\d+$/.test(modId)
             });
         }
     }
@@ -248,7 +237,7 @@ export async function showModsSummary(): Promise<void> {
         }
 
         // Sort mods by size (largest to smallest)
-        const sortedMods = [...summary.mods].sort((a, b) => b.size - a.size);
+        const sortedMods = [...summary.mods].sort((a, b) => (b.size || 0) - (a.size || 0));
 
         // Show in an output channel for better readability
         const outputChannel = vscode.window.createOutputChannel('DevZ Mods Summary');
@@ -267,7 +256,7 @@ export async function showModsSummary(): Promise<void> {
             outputChannel.appendLine(`Name: ${mod.name}`);
             outputChannel.appendLine(`ID: ${mod.id}`);
             outputChannel.appendLine(`Path: ${mod.path}`);
-            outputChannel.appendLine(`Size: ${formatBytes(mod.size)}`);
+            outputChannel.appendLine(`Size: ${formatBytes(mod.size || 0)}`);
             if (mod.workshopUrl) {
                 outputChannel.appendLine(`Workshop: ${mod.workshopUrl}`);
             }

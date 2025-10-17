@@ -1,7 +1,10 @@
 import * as vscode from 'vscode';
 import { ExtensionState, StatusBarItems } from './types';
 
-// Function to create all status bar items
+/**
+ * Creates all status bar items for the extension
+ * @returns A StatusBarItems object containing all created status bar items
+ */
 export function createStatusBarItems(): StatusBarItems {
     return {
         packPBO: vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 104),
@@ -12,7 +15,10 @@ export function createStatusBarItems(): StatusBarItems {
     };
 }
 
-// Function to configure status bar items
+/**
+ * Configures the status bar items with their text, tooltips, commands, and visibility
+ * @param items - The status bar items to configure
+ */
 export function configureStatusBarItems(items: StatusBarItems): void {
     // Configure Pack PBO button
     items.packPBO.text = "$(package) Pack PBO";
@@ -45,7 +51,11 @@ export function configureStatusBarItems(items: StatusBarItems): void {
     items.modsSummary.show();
 }
 
-// Function to update status bar based on process states
+/**
+ * Updates the status bar item based on the current extension state
+ * @param statusBarItem - The status bar item to update
+ * @param state - The current extension state containing process information
+ */
 export function updateStatusBar(statusBarItem: vscode.StatusBarItem, state: ExtensionState): void {
     const isServerRunning = state.serverProcess && !state.serverProcess.killed;
     const isClientRunning = state.clientProcess && !state.clientProcess.killed;

@@ -14,8 +14,11 @@ import {
 	showModsSummary
 } from './directoryManager';
 import { ModHoverProvider, ModInlayHintsProvider } from './modTooltipProvider';
+import { createCommandHandler, createSilentCommandHandler, delay } from './utils';
 
-// Global extension state
+/**
+ * Global extension state - maintains process information and logging state
+ */
 let extensionState: ExtensionState = {
 	serverProcess: null,
 	clientProcess: null,
@@ -26,6 +29,37 @@ let extensionState: ExtensionState = {
 	logMonitoringActive: false
 };
 
+/**
+ * Handles the start server and client command with proper process management
+ * @param statusBarItems - The status bar items for UI updates
+ */
+async function handleStartServerAndClient(statusBarItems: any): Promise<void> {
+	// Check if any processes are running
+	const isServerRunning = extensionState.serverProcess && !extensionState.serverProcess.killed;
+	const isClientRunning = extensionState.clientProcess && !extensionState.clientProcess.killed;
+
+	if (isServerRunning || isClientRunning) {
+		// Stop existing processes
+		stopAllProcesses(extensionState, statusBarItems.startServerAndClient);
+		return;
+	}
+
+	// Ensure mod is packed before starting
+	await createModBase();
+	await packPBO();
+
+	// Start server first
+	await startServer(extensionState, statusBarItems.startServerAndClient);
+
+	// Wait for server to start, then start client
+	await delay(3000);
+	await startClient(extensionState, statusBarItems.startServerAndClient);
+}
+
+/**
+ * Extension activation function called when the extension is activated
+ * @param context - The extension context provided by VS Code
+ */
 export function activate(context: vscode.ExtensionContext) {
 	console.log('DevZ Tools extension is now active!');
 
@@ -50,96 +84,62 @@ export function activate(context: vscode.ExtensionContext) {
 		modInlayHintsProvider
 	);
 
-	// Register all commands
-	const packPBOCommand = vscode.commands.registerCommand('devz-tools.packPBO', async () => {
-		try {
+	// Register all commands using standardized error handling
+	const packPBOCommand = vscode.commands.registerCommand(
+		'devz-tools.packPBO',
+		createCommandHandler('Pack PBO', async () => {
 			await createModBase();
 			await packPBO();
-		} catch (error) {
-			vscode.window.showErrorMessage(`Failed to pack PBO: ${error}`);
-		}
-	});
+		})
+	);
 
-	const startServerAndClientCommand = vscode.commands.registerCommand('devz-tools.startServerAndClient', async () => {
-		try {
-			// Check if any processes are running
-			const isServerRunning = extensionState.serverProcess && !extensionState.serverProcess.killed;
-			const isClientRunning = extensionState.clientProcess && !extensionState.clientProcess.killed;
+	const startServerAndClientCommand = vscode.commands.registerCommand(
+		'devz-tools.startServerAndClient',
+		createCommandHandler('Start Server and Client', async () => {
+			await handleStartServerAndClient(statusBarItems);
+		})
+	);
 
-			if (isServerRunning || isClientRunning) {
-				// Stop existing processes
-				stopAllProcesses(extensionState, statusBarItems.startServerAndClient);
-				return;
-			}
+	const wipeServerDataCommand = vscode.commands.registerCommand(
+		'devz-tools.wipeServerData',
+		createCommandHandler('Wipe Server Data', wipeServerData)
+	);
 
-			// Ensure mod is packed before starting
-			await createModBase();
-			await packPBO();
+	const wipeClientDataCommand = vscode.commands.registerCommand(
+		'devz-tools.wipeClientData',
+		createCommandHandler('Wipe Client Data', wipeClientData)
+	);
 
-			// Start server first
-			await startServer(extensionState, statusBarItems.startServerAndClient);
+	// Directory commands use silent handlers since they handle their own error display
+	const openClientDirectoryCommand = vscode.commands.registerCommand(
+		'devz-tools.openClientDirectory',
+		createSilentCommandHandler(openClientDirectory)
+	);
 
-			// Wait a bit for server to start, then start client
-			setTimeout(async () => {
-				await startClient(extensionState, statusBarItems.startServerAndClient);
-			}, 3000);
+	const openServerDirectoryCommand = vscode.commands.registerCommand(
+		'devz-tools.openServerDirectory',
+		createSilentCommandHandler(openServerDirectory)
+	);
 
-		} catch (error) {
-			vscode.window.showErrorMessage(`Failed to start server and client: ${error}`);
-		}
-	});
+	const openToolsDirectoryCommand = vscode.commands.registerCommand(
+		'devz-tools.openToolsDirectory',
+		createSilentCommandHandler(openToolsDirectory)
+	);
 
-	const wipeServerDataCommand = vscode.commands.registerCommand('devz-tools.wipeServerData', async () => {
-		await wipeServerData();
-	});
+	const openProjectDriveDirectoryCommand = vscode.commands.registerCommand(
+		'devz-tools.openProjectDriveDirectory',
+		createSilentCommandHandler(openProjectDriveDirectory)
+	);
 
-	const wipeClientDataCommand = vscode.commands.registerCommand('devz-tools.wipeClientData', async () => {
-		await wipeClientData();
-	});
+	const openWorkshopDirectoryCommand = vscode.commands.registerCommand(
+		'devz-tools.openWorkshopDirectory',
+		createSilentCommandHandler(openWorkshopDirectory)
+	);
 
-	const openClientDirectoryCommand = vscode.commands.registerCommand('devz-tools.openClientDirectory', async () => {
-		try {
-			await openClientDirectory();
-		} catch (error) {
-			// Error already shown in openClientDirectory
-		}
-	});
-
-	const openServerDirectoryCommand = vscode.commands.registerCommand('devz-tools.openServerDirectory', async () => {
-		try {
-			await openServerDirectory();
-		} catch (error) {
-			// Error already shown in openServerDirectory
-		}
-	});
-
-	const openToolsDirectoryCommand = vscode.commands.registerCommand('devz-tools.openToolsDirectory', async () => {
-		try {
-			await openToolsDirectory();
-		} catch (error) {
-			// Error already shown in openToolsDirectory
-		}
-	});
-
-	const openProjectDriveDirectoryCommand = vscode.commands.registerCommand('devz-tools.openProjectDriveDirectory', async () => {
-		try {
-			await openProjectDriveDirectory();
-		} catch (error) {
-			// Error already shown in openProjectDriveDirectory
-		}
-	});
-
-	const openWorkshopDirectoryCommand = vscode.commands.registerCommand('devz-tools.openWorkshopDirectory', async () => {
-		try {
-			await openWorkshopDirectory();
-		} catch (error) {
-			// Error already shown in openWorkshopDirectory
-		}
-	});
-
-	const showModsSummaryCommand = vscode.commands.registerCommand('devz-tools.showModsSummary', async () => {
-		await showModsSummary();
-	});
+	const showModsSummaryCommand = vscode.commands.registerCommand(
+		'devz-tools.showModsSummary',
+		createCommandHandler('Show Mods Summary', showModsSummary)
+	);
 
 	// Add all disposables to context subscriptions
 	context.subscriptions.push(
@@ -159,7 +159,10 @@ export function activate(context: vscode.ExtensionContext) {
 	);
 }
 
-async function performStartupValidation() {
+/**
+ * Performs startup validation of the extension configuration
+ */
+async function performStartupValidation(): Promise<void> {
 	try {
 		const validationResult = await validateStartupConfiguration();
 		showValidationResults(validationResult);
@@ -168,15 +171,24 @@ async function performStartupValidation() {
 	}
 }
 
-export function deactivate() {
+/**
+ * Extension deactivation function called when the extension is deactivated
+ * Performs cleanup of running processes and resources
+ */
+export function deactivate(): void {
+	console.log('DevZ Tools extension is deactivating...');
+
 	// Clean up any running processes
 	if (extensionState.serverProcess && !extensionState.serverProcess.killed) {
+		console.log('Killing server process during deactivation');
 		extensionState.serverProcess.kill();
 	}
 	if (extensionState.clientProcess && !extensionState.clientProcess.killed) {
+		console.log('Killing client process during deactivation');
 		extensionState.clientProcess.kill();
 	}
 	if (extensionState.logWatcher) {
+		console.log('Closing log watcher during deactivation');
 		extensionState.logWatcher.close();
 	}
 }
