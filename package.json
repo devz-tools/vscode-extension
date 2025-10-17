@@ -4,6 +4,7 @@
   "description": "A community VSCode extension for developing DayZ mods, mission files, and server experiences.",
   "version": "0.1.0",
   "repository": "https://github.com/devz-tools/vscode-extension",
+  "publisher": "devz-tools",
   "engines": {
     "vscode": "^1.105.0"
   },
