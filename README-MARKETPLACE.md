@@ -12,6 +12,7 @@ A community VSCode extension for developing DayZ mods, mission files, and server
 - **Mod Tooltips**: Hover tooltips showing mod names in configuration files
 - **Mod Summary**: View a summary of all configured mods
 - **Consolidated Log Views**: Access various DayZ log files in real-time directly from VS Code
+- **Syntax Highlighting**: Enhanced syntax highlighting for DayZ .c and .cpp files
 
 ## Getting Started
 
