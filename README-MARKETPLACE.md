@@ -10,6 +10,7 @@ A community VSCode extension for developing DayZ mods, mission files, and server
 - **Directory Shortcuts**: Quick access to all DayZ-related directories
 - **Mod Tooltips**: Hover tooltips showing mod names in configuration files
 - **Mod Summary**: View a summary of all configured mods
+- **Consolidated Log Views**: Access various DayZ log files in real-time directly from VS Code
 
 ## Getting Started
 
