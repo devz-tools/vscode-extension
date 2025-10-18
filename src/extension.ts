@@ -15,6 +15,7 @@ import {
 } from './directoryManager';
 import { ModHoverProvider, ModInlayHintsProvider } from './modTooltipProvider';
 import { createCommandHandler, createSilentCommandHandler, delay } from './utils';
+import { getEnforceLanguageConfig } from './enforceLangConfig';
 
 /**
  * Global extension state - maintains process information and logging state
@@ -146,6 +147,29 @@ async function showLogs(state: ExtensionState): Promise<void> {
 }
 
 /**
+ * Forces all .c and .cpp files in the workspace to use Enforce Script language
+ * This ensures Enforce syntax highlighting takes priority over C/C++ extensions
+ * @param context - The extension context for subscriptions
+ */
+function enforceLanguageOverride(context: vscode.ExtensionContext): void {
+	// Set language for all currently open .c and .cpp files
+	vscode.workspace.textDocuments.forEach(document => {
+		if ((document.fileName.endsWith('.c') || document.fileName.endsWith('.cpp')) &&
+			document.languageId !== 'enforcescript') {
+			vscode.languages.setTextDocumentLanguage(document, 'enforcescript');
+		}
+	});
+
+	// Monitor for newly opened files and override their language
+	const openTextDocumentListener = vscode.workspace.onDidOpenTextDocument(document => {
+		if ((document.fileName.endsWith('.c') || document.fileName.endsWith('.cpp')) &&
+			document.languageId !== 'enforcescript') {
+			vscode.languages.setTextDocumentLanguage(document, 'enforcescript');
+		}
+	});
+
+	context.subscriptions.push(openTextDocumentListener);
+}/**
  * Extension activation function called when the extension is activated
  * @param context - The extension context provided by VS Code
  */
@@ -158,6 +182,17 @@ export function activate(context: vscode.ExtensionContext) {
 	// Create and configure status bar items
 	const statusBarItems = createStatusBarItems();
 	configureStatusBarItems(statusBarItems);
+
+	// Register Enforce Script language support
+	const enforceConfig = getEnforceLanguageConfig();
+	const enforceLanguage = vscode.languages.setLanguageConfiguration(
+		enforceConfig.id,
+		enforceConfig.configuration
+	);
+	context.subscriptions.push(enforceLanguage);
+
+	// Force Enforce language for all .c and .cpp files (overrides C/C++ extensions)
+	enforceLanguageOverride(context);
 
 	// Register mod tooltip providers
 	const modHoverProvider = new ModHoverProvider();

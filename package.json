@@ -16,6 +16,98 @@
   ],
   "main": "./dist/extension.js",
   "contributes": {
+    "languages": [
+      {
+        "id": "enforcescript",
+        "aliases": [
+          "Enforce Script",
+          "enforcescript"
+        ],
+        "extensions": [
+          ".c",
+          ".cpp"
+        ],
+        "filenames": [],
+        "filenamePatterns": [
+          "**/*.c",
+          "**/*.cpp"
+        ],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./images/enforce-icon.png",
+          "dark": "./images/enforce-icon.png"
+        }
+      }
+    ],
+    "grammars": [
+      {
+        "language": "enforcescript",
+        "scopeName": "source.enforce",
+        "path": "./syntaxes/enforce.tmLanguage.json"
+      }
+    ],
+    "configurationDefaults": {
+      "[enforcescript]": {
+        "editor.semanticHighlighting.enabled": true
+      },
+      "editor.tokenColorCustomizations": {
+        "textMateRules": [
+          {
+            "scope": [
+              "entity.name.function.definition.enforce",
+              "entity.name.function.call.enforce"
+            ],
+            "settings": {
+              "foreground": "#4EC9B0",
+              "fontStyle": ""
+            }
+          },
+          {
+            "scope": [
+              "support.type.class.enforce",
+              "entity.name.type.class.enforce",
+              "entity.other.inherited-class.enforce"
+            ],
+            "settings": {
+              "foreground": "#4FC1FF",
+              "fontStyle": ""
+            }
+          },
+          {
+            "scope": [
+              "support.type.primitive.enforce"
+            ],
+            "settings": {
+              "foreground": "#569CD6",
+              "fontStyle": ""
+            }
+          },
+          {
+            "scope": [
+              "support.type.builtin.enforce"
+            ],
+            "settings": {
+              "foreground": "#4EC9B0",
+              "fontStyle": ""
+            }
+          },
+          {
+            "scope": [
+              "storage.type.class.enforce",
+              "storage.modifier.enforce",
+              "storage.modifier.access.enforce",
+              "keyword.control.conditional.enforce",
+              "keyword.control.loop.enforce",
+              "keyword.control.flow.enforce",
+              "keyword.other.enforce"
+            ],
+            "settings": {
+              "fontStyle": ""
+            }
+          }
+        ]
+      }
+    },
     "commands": [
       {
         "command": "devz-tools.packPBO",

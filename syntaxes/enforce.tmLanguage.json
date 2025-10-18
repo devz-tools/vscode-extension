@@ -1,0 +1,275 @@
+{
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "Enforce Script",
+    "scopeName": "source.enforce",
+    "fileTypes": [
+        "c",
+        "cpp"
+    ],
+    "patterns": [
+        {
+            "include": "#comments"
+        },
+        {
+            "include": "#keywords"
+        },
+        {
+            "include": "#storage-modifiers"
+        },
+        {
+            "include": "#class-declaration"
+        },
+        {
+            "include": "#function-declaration"
+        },
+        {
+            "include": "#storage-types"
+        },
+        {
+            "include": "#constants"
+        },
+        {
+            "include": "#strings"
+        },
+        {
+            "include": "#numbers"
+        },
+        {
+            "include": "#operators"
+        }
+    ],
+    "repository": {
+        "comments": {
+            "patterns": [
+                {
+                    "name": "comment.line.double-slash.enforce",
+                    "match": "//.*$"
+                },
+                {
+                    "name": "comment.block.enforce",
+                    "begin": "/\\*",
+                    "end": "\\*/"
+                }
+            ]
+        },
+        "keywords": {
+            "patterns": [
+                {
+                    "name": "keyword.control.conditional.enforce",
+                    "match": "\\b(if|else|switch|case|default)\\b"
+                },
+                {
+                    "name": "keyword.control.loop.enforce",
+                    "match": "\\b(for|foreach|while|do)\\b"
+                },
+                {
+                    "name": "keyword.control.flow.enforce",
+                    "match": "\\b(break|continue|return)\\b"
+                },
+                {
+                    "name": "keyword.operator.new.enforce",
+                    "match": "\\b(new|delete)\\b"
+                },
+                {
+                    "name": "keyword.other.enforce",
+                    "match": "\\b(this|super|null|thread)\\b"
+                },
+                {
+                    "name": "keyword.other.typedef.enforce",
+                    "match": "\\b(typedef|typename)\\b"
+                }
+            ]
+        },
+        "storage-modifiers": {
+            "patterns": [
+                {
+                    "name": "storage.modifier.access.enforce",
+                    "match": "\\b(private|protected|public)\\b"
+                },
+                {
+                    "name": "storage.modifier.enforce",
+                    "match": "\\b(static|const|ref|autoptr|out|inout|override|proto|native|modded)\\b"
+                }
+            ]
+        },
+        "storage-types": {
+            "patterns": [
+                {
+                    "name": "support.type.primitive.enforce",
+                    "match": "\\b(void|int|float|bool|string|vector|auto)\\b"
+                },
+                {
+                    "name": "storage.type.class.enforce",
+                    "match": "\\b(class|enum|extends)\\b"
+                },
+                {
+                    "name": "support.type.builtin.enforce",
+                    "match": "\\b(array|map|set|TStringArray|TFloatArray|TIntArray|TClassArray|TVectorArray)\\b"
+                },
+                {
+                    "name": "support.type.class.enforce",
+                    "match": "\\b[A-Z][A-Za-z0-9_]*\\b(?!\\s*\\()"
+                }
+            ]
+        },
+        "constants": {
+            "patterns": [
+                {
+                    "name": "constant.language.boolean.enforce",
+                    "match": "\\b(true|false)\\b"
+                },
+                {
+                    "name": "constant.language.null.enforce",
+                    "match": "\\b(null|NULL)\\b"
+                },
+                {
+                    "name": "constant.other.enforce",
+                    "match": "\\b[A-Z_][A-Z0-9_]*\\b"
+                }
+            ]
+        },
+        "strings": {
+            "patterns": [
+                {
+                    "name": "string.quoted.double.enforce",
+                    "begin": "\"",
+                    "end": "\"",
+                    "patterns": [
+                        {
+                            "name": "constant.character.escape.enforce",
+                            "match": "\\\\(n|r|t|\\\\|\\\")"
+                        },
+                        {
+                            "name": "constant.numeric.vector.enforce",
+                            "match": "(?<=\\s|^)[-+]?\\d+(\\.\\d+)?\\s+[-+]?\\d+(\\.\\d+)?\\s+[-+]?\\d+(\\.\\d+)?(?=\\s|$)"
+                        }
+                    ]
+                },
+                {
+                    "name": "string.quoted.single.enforce",
+                    "begin": "'",
+                    "end": "'",
+                    "patterns": [
+                        {
+                            "name": "constant.character.escape.enforce",
+                            "match": "\\\\(n|r|t|\\\\|\\')"
+                        }
+                    ]
+                }
+            ]
+        },
+        "numbers": {
+            "patterns": [
+                {
+                    "name": "constant.numeric.hex.enforce",
+                    "match": "\\b0x[0-9a-fA-F]+\\b"
+                },
+                {
+                    "name": "constant.numeric.float.enforce",
+                    "match": "\\b\\d+\\.\\d+([eE][+-]?\\d+)?\\b"
+                },
+                {
+                    "name": "constant.numeric.integer.enforce",
+                    "match": "\\b\\d+\\b"
+                }
+            ]
+        },
+        "class-declaration": {
+            "patterns": [
+                {
+                    "match": "\\b(modded\\s+)?(class)\\s+([A-Za-z_][A-Za-z0-9_]*)(?:\\s*:\\s*([A-Za-z_][A-Za-z0-9_]*))?",
+                    "captures": {
+                        "1": {
+                            "name": "storage.modifier.enforce"
+                        },
+                        "2": {
+                            "name": "storage.type.class.enforce"
+                        },
+                        "3": {
+                            "name": "entity.name.type.class.enforce"
+                        },
+                        "4": {
+                            "name": "entity.other.inherited-class.enforce"
+                        }
+                    }
+                },
+                {
+                    "match": "\\b(enum)\\s+([A-Za-z_][A-Za-z0-9_]*)(?:\\s*:\\s*([A-Za-z_][A-Za-z0-9_]*))?",
+                    "captures": {
+                        "1": {
+                            "name": "storage.type.enum.enforce"
+                        },
+                        "2": {
+                            "name": "entity.name.type.enum.enforce"
+                        },
+                        "3": {
+                            "name": "entity.other.inherited-class.enforce"
+                        }
+                    }
+                }
+            ]
+        },
+        "function-declaration": {
+            "patterns": [
+                {
+                    "match": "\\b(void|int|float|bool|string|vector|auto)\\s+([A-Za-z_][A-Za-z0-9_]*)\\s*(?=\\()",
+                    "captures": {
+                        "1": {
+                            "name": "support.type.primitive.enforce"
+                        },
+                        "2": {
+                            "name": "entity.name.function.definition.enforce"
+                        }
+                    }
+                },
+                {
+                    "match": "\\b([A-Z][A-Za-z0-9_]*)\\s+([A-Za-z_][A-Za-z0-9_]*)\\s*(?=\\()",
+                    "captures": {
+                        "1": {
+                            "name": "support.type.class.enforce"
+                        },
+                        "2": {
+                            "name": "entity.name.function.definition.enforce"
+                        }
+                    }
+                },
+                {
+                    "match": "\\b([A-Za-z_][A-Za-z0-9_]*)\\s*(?=\\()",
+                    "captures": {
+                        "1": {
+                            "name": "entity.name.function.call.enforce"
+                        }
+                    }
+                }
+            ]
+        },
+        "operators": {
+            "patterns": [
+                {
+                    "name": "keyword.operator.arithmetic.enforce",
+                    "match": "\\+|\\-|\\*|\\/|%"
+                },
+                {
+                    "name": "keyword.operator.assignment.enforce",
+                    "match": "=|\\+=|\\-=|\\*=|\\/=|%=|&=|\\|=|<<=|>>="
+                },
+                {
+                    "name": "keyword.operator.comparison.enforce",
+                    "match": "==|!=|<|>|<=|>="
+                },
+                {
+                    "name": "keyword.operator.logical.enforce",
+                    "match": "&&|\\|\\||!"
+                },
+                {
+                    "name": "keyword.operator.bitwise.enforce",
+                    "match": "&|\\||~|\\^|<<|>>"
+                },
+                {
+                    "name": "keyword.operator.increment.enforce",
+                    "match": "\\+\\+|\\-\\-"
+                }
+            ]
+        }
+    }
+}

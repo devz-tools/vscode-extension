@@ -25,6 +25,8 @@
 - `README.md` - Development-focused README for contributors
 - `README-MARKETPLACE.md` - User-facing README for VS Code Marketplace
 - `.vscodeignore` - Files to exclude from VSIX package
+- `language-configuration.json` - Enforce Script language configuration for VS Code
+- `enforce-script-syntax.md` - Complete Enforce Script syntax reference from Bohemia Interactive
 
 ### Source Code (`src/`)
 - `extension.ts` - Main extension entry point, handles activation and command registration
@@ -36,7 +38,12 @@
 - `statusBar.ts` - VS Code status bar integration
 - `validation.ts` - Configuration validation and error checking
 - `modTooltipProvider.ts` - Hover providers for mod information display
+- `enforceLangConfig.ts` - Enforce Script language configuration and features
+- `utils.ts` - Shared utility functions for error handling, formatting, and UI notifications
 - `test/` - Unit tests for the extension
+
+### Language Support (`syntaxes/`)
+- `enforce.tmLanguage.json` - TextMate grammar for Enforce Script syntax highlighting
 
 ### Build & Deployment
 - `scripts/swap-readme.ps1` - PowerShell script for README swapping during packaging
@@ -190,6 +197,37 @@ git commit -m "feat: add new feature and update AGENTS.md context"
 - `DevZ: Wipe Client Data` - Clean client data for testing
 - `DevZ: Show Mods Summary` - Display configured mods overview
 - `DevZ: Initialize Mod Boilerplate` - Clone and set up DayZ mod boilerplate from GitHub
+
+### Enforce Script Language Support
+- **Syntax Highlighting** - Comprehensive TextMate grammar for Enforce Script (.c, .cpp files)
+  - Keywords: control flow (if/else/for/while/foreach/switch), operators (new/delete), special (this/super/null)
+  - Storage types: primitives (int/float/bool/string/vector), classes, templates (array/map/set)
+  - Storage modifiers: access (private/protected/public), references (ref/autoptr/out/inout), inheritance (override/modded)
+  - Constants: boolean literals, null values, UPPERCASE_CONSTANTS
+  - Strings and vectors with escape sequences
+  - Numbers: hexadecimal, float, integer
+  - Class and function declarations
+  - Operators: arithmetic, assignment, comparison, logical, bitwise
+- **Auto-completion** - Automatic bracket, quote, and brace closing
+- **Comment Support** - Line (//) and block (/* */) comment toggling
+- **Indentation** - Smart auto-indent for code blocks and control structures
+- **Word Navigation** - Ctrl+Left/Right respects Enforce Script naming conventions
+- **Code Folding** - Region-based folding with //region and //endregion markers
+- **Language Override** - Automatically forces .c and .cpp files to use Enforce Script (overrides C/C++ extensions)
+  - File extension registration for .c and .cpp
+  - Automatic language mode detection and override on file open
+  - File pattern matching for workspace-wide application
+  - Workspace settings configured in test-workspace/.vscode/settings.json
+
+**Note**: Enforce Script uses `.c` and `.cpp` file extensions exclusively (not `.h` headers)
+
+**Reference Documentation**: Complete Enforce Script syntax reference from Bohemia Interactive is available in `enforce-script-syntax.md`, covering:
+- Language basics (code blocks, variables, functions, comments, constants)
+- Operators (arithmetic, assignment, relational, logical, bitwise)
+- Types (primitives, strings, vectors, objects, enums, templates, arrays)
+- Control structures (if/switch, for/foreach/while)
+- OOP features (inheritance, constructors/destructors, managed classes, ARC)
+- Modding support (modded classes, modded constants, private member access)
 
 ### Directory Shortcuts
 - Open DayZ Client/Server/Tools directories
