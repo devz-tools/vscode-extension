@@ -16,6 +16,7 @@ import {
 import { ModHoverProvider, ModInlayHintsProvider } from './modTooltipProvider';
 import { createCommandHandler, createSilentCommandHandler, delay } from './utils';
 import { getEnforceLanguageConfig } from './enforceLangConfig';
+import { WebviewManager } from './webviewManager';
 
 /**
  * Global extension state - maintains process information and logging state
@@ -275,6 +276,21 @@ export function activate(context: vscode.ExtensionContext) {
 		createCommandHandler('Initialize Mod Boilerplate', initializeModBoilerplate)
 	);
 
+	const openFileInCustomViewerCommand = vscode.commands.registerCommand(
+		'devz-tools.openFileInCustomViewer',
+		createCommandHandler('Open File in Custom Viewer', async (uri?: vscode.Uri) => {
+			// If no URI provided, try to get the active editor's URI
+			const fileUri = uri || vscode.window.activeTextEditor?.document.uri;
+
+			if (!fileUri) {
+				vscode.window.showErrorMessage('No file selected to open in custom viewer');
+				return;
+			}
+
+			await WebviewManager.openFileViewer(context, fileUri);
+		})
+	);
+
 	// Add all disposables to context subscriptions
 	context.subscriptions.push(
 		packPBOCommand,
@@ -289,6 +305,7 @@ export function activate(context: vscode.ExtensionContext) {
 		showModsSummaryCommand,
 		showLogsCommand,
 		initializeModBoilerplateCommand,
+		openFileInCustomViewerCommand,
 		hoverProviderDisposable,
 		inlayHintsProviderDisposable,
 		...Object.values(statusBarItems)

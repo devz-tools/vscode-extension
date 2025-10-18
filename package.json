@@ -156,9 +156,26 @@
       {
         "command": "devz-tools.initializeModBoilerplate",
         "title": "DevZ: Initialize Mod Boilerplate"
+      },
+      {
+        "command": "devz-tools.openFileInCustomViewer",
+        "title": "DevZ: Open in Custom Viewer"
       }
     ],
     "menus": {
+      "explorer/context": [
+        {
+          "command": "devz-tools.openFileInCustomViewer",
+          "when": "!explorerResourceIsFolder",
+          "group": "navigation@1"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "devz-tools.openFileInCustomViewer",
+          "group": "navigation@1"
+        }
+      ],
       "commandPalette": [
         {
           "command": "devz-tools.packPBO",
@@ -199,6 +216,9 @@
         },
         {
           "command": "devz-tools.initializeModBoilerplate"
+        },
+        {
+          "command": "devz-tools.openFileInCustomViewer"
         }
       ]
     },
@@ -258,11 +278,13 @@
   },
   "scripts": {
     "vscode:prepublish": "pnpm run package",
-    "compile": "pnpm run check-types && pnpm run lint && node esbuild.js",
+    "compile": "pnpm run check-types && pnpm run lint && pnpm run build:css && node esbuild.js",
     "watch": "npm-run-all -p watch:*",
     "watch:esbuild": "node esbuild.js --watch",
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
-    "package": "pnpm run check-types && pnpm run lint && node esbuild.js --production",
+    "watch:css": "tailwindcss -i ./webview-ui/src/styles.css -o ./dist/styles.css --watch",
+    "build:css": "tailwindcss -i ./webview-ui/src/styles.css -o ./dist/styles.css --minify",
+    "package": "pnpm run check-types && pnpm run lint && pnpm run build:css && node esbuild.js --production",
     "compile-tests": "tsc -p . --outDir out",
     "watch-tests": "tsc -p . -w --outDir out",
     "pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
@@ -277,15 +299,26 @@
   "devDependencies": {
     "@types/mocha": "^10.0.10",
     "@types/node": "~22.18.11",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
     "@types/vscode": "^1.105.0",
     "@typescript-eslint/eslint-plugin": "^8.46.1",
     "@typescript-eslint/parser": "^8.46.1",
     "@vscode/test-cli": "^0.0.11",
     "@vscode/test-electron": "^2.5.2",
     "@vscode/vsce": "^3.6.2",
+    "autoprefixer": "^10.4.21",
     "esbuild": "^0.25.11",
     "eslint": "^9.37.0",
     "npm-run-all": "^4.1.5",
+    "postcss": "^8.5.6",
+    "postcss-cli": "^11.0.1",
+    "tailwindcss": "^4.1.14",
     "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@vscode-elements/react-elements": "^2.3.1",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
   }
 }
