@@ -216,14 +216,6 @@ export function startLogMonitoring(state: ExtensionState, serverProfileDir?: str
             state.clientCrashLogOutputChannel = vscode.window.createOutputChannel('DevZ Debug - Client Crash Log');
         }
 
-        // Clear old logs and the debug stream
-        if (serverProfileDir) {
-            clearOldLogs(serverProfileDir, state.debugOutputChannel);
-        }
-        if (clientProfileDir) {
-            clearOldLogs(clientProfileDir);
-        }
-
         // Initialize header for combined channel
         const initializeChannel = (channel: vscode.OutputChannel, title: string) => {
             channel.clear();
@@ -804,7 +796,10 @@ export async function startServer(state: ExtensionState, statusBarItem: vscode.S
         }
 
         // Clear old log files before starting
-        clearOldLogs(profileDir, state.debugOutputChannel || undefined);
+        const deletedCount = clearOldLogs(profileDir, state.debugOutputChannel || undefined);
+        if (deletedCount > 0) {
+            logToTools(state, `Cleared ${deletedCount} old server log file(s)`);
+        }
 
         const serverExePath = path.join(settings.dayzServerDir, 'DayZServer_x64.exe');
         const modString = buildModString(settings, repoDir);
@@ -903,7 +898,10 @@ export async function startClient(state: ExtensionState, statusBarItem: vscode.S
         }
 
         // Clear old client logs before starting
-        clearOldLogs(profileDir, state.debugOutputChannel || undefined);
+        const deletedCount = clearOldLogs(profileDir, state.debugOutputChannel || undefined);
+        if (deletedCount > 0) {
+            logToTools(state, `Cleared ${deletedCount} old client log file(s)`);
+        }
 
         const clientExePath = path.join(settings.dayzClientDir, 'DayZ_BE.exe');
         const modString = buildModString(settings, repoDir);

@@ -9,11 +9,13 @@ import { confirmDestructiveAction, showMeaningfulNotification } from './utils';
  * Clears old log files from the specified profile directory
  * @param profileDir - The profile directory path to clean
  * @param debugOutputChannel - Optional debug output channel to clear
+ * @returns Number of files successfully deleted
  */
-export function clearOldLogs(profileDir: string, debugOutputChannel?: vscode.OutputChannel): void {
+export function clearOldLogs(profileDir: string, debugOutputChannel?: vscode.OutputChannel): number {
     try {
         if (!fs.existsSync(profileDir)) {
-            return;
+            console.log(`Profile directory does not exist: ${profileDir}`);
+            return 0;
         }
 
         const files = fs.readdirSync(profileDir);
@@ -22,30 +24,51 @@ export function clearOldLogs(profileDir: string, debugOutputChannel?: vscode.Out
             /^DayZServer_x64_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.RPT$/,
             /^DayZServer_x64_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.ADM$/,
             /^DayZ_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.RPT$/,  // Client logs
+            /^DayZ_x64_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.RPT$/,  // Client logs
+            /^DayZ_BE_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.RPT$/,  // Client BattleEye logs
             /^crash_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.log$/,
             /^ErrorMessage_DayZServer_x64_.*\.mdmp$/,
             /^ErrorMessage_DayZ_.*\.mdmp$/  // Client crash dumps
         ];
 
         let deletedCount = 0;
+        let failedCount = 0;
+        const failedFiles: string[] = [];
+
         files.forEach(file => {
             if (logPatterns.some(pattern => pattern.test(file))) {
                 const filePath = path.join(profileDir, file);
                 try {
+                    // Check if file is accessible before attempting deletion
+                    fs.accessSync(filePath, fs.constants.W_OK);
                     fs.unlinkSync(filePath);
                     deletedCount++;
+                    console.log(`Deleted old log file: ${file}`);
                 } catch (error) {
+                    failedCount++;
+                    failedFiles.push(file);
                     console.log(`Could not delete ${file}: ${error}`);
                 }
             }
         });
 
+        if (deletedCount > 0) {
+            console.log(`Successfully deleted ${deletedCount} old log file(s) from ${profileDir}`);
+        }
+
+        if (failedCount > 0) {
+            console.log(`Warning: Failed to delete ${failedCount} log file(s) (may be locked by running processes): ${failedFiles.join(', ')}`);
+        }
+
         // Clear the debug output channel if provided
         if (debugOutputChannel) {
             debugOutputChannel.clear();
         }
+
+        return deletedCount;
     } catch (error) {
-        console.log(`Error clearing logs: ${error}`);
+        console.log(`Error clearing logs from ${profileDir}: ${error}`);
+        return 0;
     }
 }
 
