@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import { promisify } from 'util';
 import { getExtensionSettings } from './config';
 import { ModInfo, ModSummary } from './types';
+import { showMeaningfulNotification, showAutoHideNotification } from './utils';
 
 const stat = promisify(fs.stat);
 const readdir = promisify(fs.readdir);
@@ -232,7 +233,7 @@ export async function showModsSummary(): Promise<void> {
         const summary = await getModsSummary();
 
         if (summary.totalCount === 0) {
-            vscode.window.showInformationMessage('No additional mods configured.');
+            showAutoHideNotification('No additional mods configured.', 'info', 2000);
             return;
         }
 
@@ -275,19 +276,26 @@ export async function showModsSummary(): Promise<void> {
         actions.push('Open Workshop Directory');
 
         if (actions.length > 0) {
-            vscode.window.showInformationMessage(
+            showAutoHideNotification(
                 `Found ${summary.totalCount} mods (${formatBytes(summary.totalSize)} total). See output for details.`,
+                'info',
+                3000
+            );
+            // Provide action buttons separately if needed
+            const action = await vscode.window.showInformationMessage(
+                'Mod summary available in output panel. Quick actions:',
                 ...actions
-            ).then(action => {
-                if (action === 'Open Workshop Links') {
-                    openWorkshopLinksForMods(sortedMods);
-                } else if (action === 'Open Workshop Directory') {
-                    openWorkshopDirectory();
-                }
-            });
+            );
+            if (action === 'Open Workshop Links') {
+                openWorkshopLinksForMods(sortedMods);
+            } else if (action === 'Open Workshop Directory') {
+                openWorkshopDirectory();
+            }
         } else {
-            vscode.window.showInformationMessage(
-                `Found ${summary.totalCount} mods (${formatBytes(summary.totalSize)} total). See output for details.`
+            showAutoHideNotification(
+                `Found ${summary.totalCount} mods (${formatBytes(summary.totalSize)} total). Check output panel for details.`,
+                'info',
+                3000
             );
         }
     } catch (error) {
@@ -303,7 +311,7 @@ async function openWorkshopLinksForMods(mods: ModInfo[]): Promise<void> {
     const workshopMods = mods.filter(mod => mod.workshopUrl);
 
     if (workshopMods.length === 0) {
-        vscode.window.showInformationMessage('No workshop mods found.');
+        showAutoHideNotification('No workshop mods found.', 'info', 2000);
         return;
     }
 

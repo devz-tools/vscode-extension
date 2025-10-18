@@ -1,11 +1,12 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
+import { showAutoHideNotification } from '../utils';
 
 /**
  * Main extension test suite
  */
 suite('DevZ Tools Extension Test Suite', () => {
-	vscode.window.showInformationMessage('Running DevZ Tools tests...');
+	showAutoHideNotification('Running DevZ Tools tests...', 'info', 2000);
 
 	test('Extension should be present', () => {
 		const extension = vscode.extensions.getExtension('devz-tools.devz-tools');

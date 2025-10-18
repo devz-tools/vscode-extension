@@ -234,22 +234,23 @@ The extension uses VS Code's configuration system with the prefix `devz-tools.*`
 - **esbuild** - Fast bundling and compilation
 - **ESLint** - Code linting and quality
 - **GitHub Actions** - CI/CD pipeline
-- **pnpm** - Package management
+- **pnpm** - Package management (REQUIRED - do not use npm or yarn)
 
 ### Build Scripts
-- `compile` - Type check, lint, and build
-- `watch` - Development mode with file watching
-- `package` - Production build
-- `vscode:package` - Create VSIX with marketplace README
-- `vscode:publish` - Publish to marketplace with README swapping
+**All scripts must be run with pnpm:**
+- `pnpm run compile` - Type check, lint, and build
+- `pnpm run watch` - Development mode with file watching
+- `pnpm run package` - Production build
+- `pnpm run vscode:package` - Create VSIX with marketplace README
+- `pnpm run vscode:publish` - Publish to marketplace with README swapping
 
 ## README Management
 
 The project uses a dual-README system:
-- `README.md` - Development/contributor documentation
-- `README-MARKETPLACE.md` - User-facing marketplace documentation
-- `scripts/swap-readme.ps1` - Automated swapping during packaging
-- Ensures appropriate documentation for different audiences
+- `README.md` - End-user focused documentation directing users to marketplace and docs website
+- `README-MARKETPLACE.md` - User-facing marketplace documentation with installation/usage details
+- `scripts/swap-readme.ps1` - Automated swapping during packaging via pnpm scripts
+- Ensures appropriate documentation for different audiences (users vs marketplace)
 
 ## Testing Strategy
 
@@ -267,7 +268,7 @@ The project uses a dual-README system:
 
 1. **Local Development**: Use F5 to launch extension host with test workspace
 2. **Testing**: Run tests against realistic DayZ mod structure
-3. **Building**: Use watch mode for development, package for release
+3. **Building**: Use `pnpm run watch` for development, `pnpm run package` for release
 4. **Publishing**: Automated via GitHub releases or manual workflow dispatch
 
 ## Important Notes for AI Tools
@@ -289,6 +290,58 @@ The project uses a dual-README system:
 - Process spawning requires platform-specific handling
 - Configuration validation is critical for user experience
 - Status bar and UI integration should follow VS Code UX patterns
+
+### Notification System Guidelines
+
+**IMPORTANT**: The extension now uses a less intrusive notification system to improve user experience. Follow these patterns:
+
+**Success Operations**: Use status bar messages instead of notifications:
+```typescript
+// ✅ CORRECT: Use status bar for success feedback
+showMeaningfulNotification('Operation completed successfully', 'success');
+
+// ❌ INCORRECT: Don't show persistent notifications for routine success
+vscode.window.showInformationMessage('Operation completed successfully');
+```
+
+**Auto-Dismiss Notifications**: Use for warnings and informational messages:
+```typescript
+// ✅ CORRECT: Auto-dismissing warning
+showAutoHideNotification('Configuration issue detected', 'warning', 4000);
+
+// ✅ CORRECT: Auto-dismissing info
+showAutoHideNotification('Processing complete', 'info', 3000);
+```
+
+**Validation Results**: Only show issues, not success:
+```typescript
+// ✅ CORRECT: Silent success, only show problems
+if (result.errors.length > 0) {
+    vscode.window.showErrorMessage('Configuration has errors');
+}
+if (result.warnings.length > 0) {
+    showAutoHideNotification('Configuration has warnings', 'warning');
+}
+// Don't show anything for valid configurations - silence is good news!
+```
+
+**Error Notifications**: Still use standard error notifications for critical issues:
+```typescript
+// ✅ CORRECT: Show persistent errors for critical issues
+vscode.window.showErrorMessage('Critical operation failed');
+```
+
+**Status Messages**: Use for transient feedback:
+```typescript
+// ✅ CORRECT: Brief status messages that don't require user action
+showStatusMessage('DayZ Server started successfully', 3000);
+```
+
+**Key Principles**:
+- Silence is good news - don't notify for routine successful operations
+- Use auto-dismiss for non-critical information
+- Persistent notifications only for errors requiring user attention
+- Prefer status bar messages for brief success feedback
 
 ## Code Quality Standards & Refactoring Guidelines
 
@@ -393,14 +446,23 @@ const size = modInfo.size;  // Could be undefined
 
 ```typescript
 // ✅ CORRECT: Use shared utilities
-import { formatBytes, confirmDestructiveAction, delay } from './utils';
+import { 
+    formatBytes, 
+    confirmDestructiveAction, 
+    delay,
+    showMeaningfulNotification,
+    showAutoHideNotification,
+    showStatusMessage
+} from './utils';
 
 const sizeText = formatBytes(1024);
 const confirmed = await confirmDestructiveAction('Delete data?', 'Yes, Delete');
 await delay(1000);
+showMeaningfulNotification('Operation completed', 'success');
 
 // ❌ INCORRECT: Implementing these functions locally
 function formatBytes(bytes: number) { /* duplicate code */ }
+vscode.window.showInformationMessage('Success!'); // Use showMeaningfulNotification instead
 ```
 
 #### 5. Function Extraction Guidelines

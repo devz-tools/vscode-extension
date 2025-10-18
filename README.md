@@ -1,52 +1,77 @@
 # DevZ Tools VSCode Extension
 
-A community VSCode extension for developing DayZ mods, mission files, and server experiences.
+A community-driven VS Code extension designed to streamline DayZ mod development, mission files, and server administration.
 
-## Development Setup
+## 📦 Installation
 
-This extension includes a test workspace with the official DayZ mod boilerplate code as a git submodule.
+**Install from VS Code Marketplace:**
+- Open VS Code
+- Go to Extensions (`Ctrl+Shift+X`)
+- Search for "DevZ Tools"
+- Click Install
 
-### Running the Extension for Development
+**Or install directly from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=devz-tools.devz-tools)**
 
-1. Open this folder in VS Code
-2. Press `F5` or use "Run and Debug" to launch the extension
-3. A new VS Code window will open with the `test-workspace` folder loaded
-4. The test workspace contains a complete DayZ mod boilerplate to test against
+## 🚀 Features
 
-### Resetting Test Workspace
+### Core Development Tools
+- **PBO Packing** - Compile your mods into PBO format with one command
+- **Server & Client Management** - Start DayZ server and client simultaneously
+- **Data Management** - Clean server and client data for testing
+- **Mod Overview** - Get a summary of all configured mods
 
-To reset the test workspace to its original state (useful for testing):
+### Directory Shortcuts
+- Quick access to DayZ Client, Server, and Tools directories
+- Steam Workshop directory navigation
+- Project Drive (P:\\) management
 
-```bash
-cd test-workspace
-git reset --hard HEAD
-git clean -fd
-```
+### Development Enhancements
+- Mod name tooltips in configuration files
+- Real-time configuration validation
+- Status bar integration for process monitoring
+- Comprehensive error handling and logging
 
-### Updating Test Workspace
+## 📚 Documentation
 
-To update the test workspace to the latest boilerplate version:
+For comprehensive setup guides, tutorials, and troubleshooting:
 
-```bash
-git submodule update --remote test-workspace
-```
+**🌐 [Visit DevZ Tools Documentation](https://devz-tools.github.io/)**
 
-## Publishing
+The documentation includes:
+- Installation and setup instructions
+- Feature walkthroughs and tutorials
+- Configuration reference
+- Troubleshooting guides
+- Community resources
 
-This extension uses automated GitHub workflows for publishing to the VSCode Marketplace.
+## 🛠️ Requirements
 
-### Quick Publishing
+- **DayZ** (Steam version)
+- **DayZ Server** (Steam version)
+- **DayZ Tools** (Steam version)
+- **Windows 10/11** (PowerShell required)
 
-1. **Create a release on GitHub:**
-   ```bash
-   git tag v1.0.0
-   git push origin v1.0.0
-   ```
-2. Go to GitHub → Releases → Create a new release using the tag
-3. The extension will automatically be published to the marketplace
+## 🎯 Getting Started
 
-### Manual Publishing
+1. **Install the extension** from the VS Code Marketplace
+2. **Open a DayZ mod project** (must contain `src/config.cpp`)
+3. **Configure your paths** in VS Code settings (`devz-tools.*`)
+4. **Start developing!** Use the Command Palette (`Ctrl+Shift+P`) and search for "DevZ"
 
-You can also trigger publishing manually from the GitHub Actions tab.
+## 💬 Community & Support
 
-For detailed setup instructions and troubleshooting, see [`.github/PUBLISHING.md`](.github/PUBLISHING.md).
+- **Issues & Bug Reports**: [GitHub Issues](https://github.com/devz-tools/vscode-extension/issues)
+- **Feature Requests**: [GitHub Discussions](https://github.com/orgs/devz-tools/discussions/categories/ideas)
+- **Documentation**: [devz-tools.github.io](https://devz-tools.github.io/)
+
+## 🤝 Contributing
+
+We welcome contributions from the DayZ modding community! 
+
+- **Report bugs** or **request features** via [GitHub Issues](https://github.com/devz-tools/vscode-extension/issues)
+- **Contribute code** via [Pull Requests](https://github.com/devz-tools/vscode-extension/pulls)
+- **Improve documentation** at [devz-tools.github.io](https://github.com/devz-tools/devz-tools.github.io)
+
+---
+
+**Made with ❤️ by and for the DayZ modding community**

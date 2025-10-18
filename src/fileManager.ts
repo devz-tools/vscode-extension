@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { spawn } from 'child_process';
 import { getExtensionSettings, getWorkspaceRoot, buildModString } from './config';
-import { confirmDestructiveAction } from './utils';
+import { confirmDestructiveAction, showMeaningfulNotification } from './utils';
 
 /**
  * Clears old log files from the specified profile directory
@@ -142,7 +142,7 @@ export async function packPBO(): Promise<void> {
 
                 if (code === 0) {
                     if (fs.existsSync(outputPBOPath)) {
-                        vscode.window.showInformationMessage('PBO packed successfully!');
+                        showMeaningfulNotification('PBO packed successfully!', 'success');
                         resolve();
                     } else {
                         const errorMsg = `PBO packing completed but output file not found at: ${outputPBOPath}`;
@@ -214,7 +214,7 @@ export async function wipeServerData(): Promise<void> {
             deletedItems++;
         }
 
-        vscode.window.showInformationMessage('Server data wiped successfully!');
+        showMeaningfulNotification('Server data wiped successfully!', 'success');
     } catch (error) {
         vscode.window.showErrorMessage(`Failed to wipe server data: ${error}`);
     }
@@ -243,7 +243,7 @@ export async function wipeClientData(): Promise<void> {
             fs.rmSync(clientProfileDir, { recursive: true, force: true });
         }
 
-        vscode.window.showInformationMessage('Client data wiped successfully!');
+        showMeaningfulNotification('Client data wiped successfully!', 'success');
     } catch (error) {
         vscode.window.showErrorMessage(`Failed to wipe client data: ${error}`);
     }

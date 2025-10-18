@@ -6,6 +6,7 @@ import { DevZSettings, ExtensionState } from './types';
 import { getExtensionSettings, getWorkspaceRoot, buildModString } from './config';
 import { clearOldLogs } from './fileManager';
 import { updateStatusBar } from './statusBar';
+import { showMeaningfulNotification, showAutoHideNotification, showStatusMessage } from './utils';
 
 /**
  * Aggressively kills all DayZ-related processes using PowerShell
@@ -123,7 +124,7 @@ export function stopAllProcesses(state: ExtensionState, statusBarItem: vscode.St
                 state.clientProcess.removeListener('exit', clientExitHandler);
                 state.clientProcess = null;
                 checkAllProcessesStopped();
-                vscode.window.showWarningMessage('DayZ Client process cleanup forced after timeout');
+                showAutoHideNotification('DayZ Client process cleanup forced after timeout', 'warning', 3000);
             }
         }, 5000);
     }
@@ -181,7 +182,7 @@ export function stopAllProcesses(state: ExtensionState, statusBarItem: vscode.St
                         state.serverProcess.removeListener('exit', serverExitHandler);
                         state.serverProcess = null;
                         checkAllProcessesStopped();
-                        vscode.window.showWarningMessage('DayZ Server process cleanup forced after timeout');
+                        showAutoHideNotification('DayZ Server process cleanup forced after timeout', 'warning', 3000);
                     }
                 }, 3000);
             }
@@ -204,7 +205,7 @@ export function stopAllProcesses(state: ExtensionState, statusBarItem: vscode.St
     // Final fallback: Use PowerShell to kill any remaining DayZ processes after 15 seconds
     setTimeout(() => {
         if (state.isShuttingDown) {
-            vscode.window.showWarningMessage('Using fallback method to kill remaining DayZ processes...');
+            showAutoHideNotification('Using fallback method to kill remaining DayZ processes...', 'warning', 3000);
             killDayZProcesses();
 
             // Force reset state after PowerShell attempt
@@ -282,7 +283,7 @@ export async function startServer(state: ExtensionState, statusBarItem: vscode.S
         // Handle server process events
         state.serverProcess.on('spawn', () => {
             updateStatusBar(statusBarItem, state);
-            vscode.window.showInformationMessage('DayZ Server started successfully');
+            showStatusMessage('DayZ Server started successfully', 3000);
         });
 
         state.serverProcess.on('error', (error) => {
@@ -374,7 +375,7 @@ export async function startClient(state: ExtensionState, statusBarItem: vscode.S
         // Handle client process events
         state.clientProcess.on('spawn', () => {
             updateStatusBar(statusBarItem, state);
-            vscode.window.showInformationMessage('DayZ Client started successfully');
+            showStatusMessage('DayZ Client started successfully', 3000);
         });
 
         state.clientProcess.on('error', (error) => {
@@ -395,7 +396,7 @@ export async function startClient(state: ExtensionState, statusBarItem: vscode.S
         state.clientProcess.stderr?.on('data', (data) => {
             const errorOutput = data.toString();
             if (errorOutput.includes('Connection failed') || errorOutput.includes('EXCEPTION')) {
-                vscode.window.showWarningMessage(`Client Warning: ${errorOutput.substring(0, 100)}...`);
+                showAutoHideNotification(`Client Warning: ${errorOutput.substring(0, 100)}...`, 'warning', 4000);
             }
         });
 

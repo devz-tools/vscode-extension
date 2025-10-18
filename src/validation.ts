@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { DevZSettings, ValidationResult, PathValidationResult } from './types';
 import { getExtensionSettings } from './config';
+import { showMeaningfulNotification, showAutoHideNotification } from './utils';
 
 /**
  * Validates all configured paths and settings on startup
@@ -206,17 +207,16 @@ function isValidServerAddress(address: string): boolean {
 }
 
 /**
- * Shows validation results to the user
+ * Shows validation results to the user (only shows issues, not success)
  */
 export function showValidationResults(result: ValidationResult): void {
+    // Don't show success notifications - silence is good news!
     if (result.isValid && result.warnings.length === 0) {
-        vscode.window.showInformationMessage('✅ All DevZ configuration paths are valid');
         return;
     }
 
-    // Show errors
+    // Show errors (always important)
     if (result.errors.length > 0) {
-        const errorMsg = 'DevZ Configuration Errors:\n' + result.errors.map(error => `• ${error}`).join('\n');
         vscode.window.showErrorMessage('❌ DevZ configuration has errors. Check the output panel for details.');
 
         const outputChannel = vscode.window.createOutputChannel('DevZ Configuration');
@@ -239,9 +239,13 @@ export function showValidationResults(result: ValidationResult): void {
         outputChannel.show();
     }
 
-    // Show warnings separately if no errors
+    // Show warnings with auto-dismiss (less intrusive than persistent notifications)
     if (result.errors.length === 0 && result.warnings.length > 0) {
-        vscode.window.showWarningMessage(`⚠️ DevZ configuration has ${result.warnings.length} warning(s). Check the output panel for details.`);
+        showAutoHideNotification(
+            `⚠️ DevZ configuration has ${result.warnings.length} warning(s). Check the output panel for details.`,
+            'warning',
+            4000
+        );
 
         const outputChannel = vscode.window.createOutputChannel('DevZ Configuration');
         outputChannel.clear();
