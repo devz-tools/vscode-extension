@@ -7,6 +7,7 @@ import { getExtensionSettings, getWorkspaceRoot, buildModString } from './config
 import { clearOldLogs } from './fileManager';
 import { updateStatusBar } from './statusBar';
 import { showMeaningfulNotification, showAutoHideNotification, showStatusMessage } from './utils';
+import { createAndRegisterOutputChannel } from './disposables';
 
 /**
  * Logs a message to the DevZ Tools output channel with timestamp
@@ -15,7 +16,7 @@ import { showMeaningfulNotification, showAutoHideNotification, showStatusMessage
  */
 function logToTools(state: ExtensionState, message: string): void {
     if (!state.toolsOutputChannel) {
-        state.toolsOutputChannel = vscode.window.createOutputChannel('DevZ Tools');
+        state.toolsOutputChannel = createAndRegisterOutputChannel('DevZ Tools');
     }
     const timestamp = new Date().toLocaleTimeString();
     state.toolsOutputChannel.appendLine(`[${timestamp}] ${message}`);
@@ -187,33 +188,33 @@ export function startLogMonitoring(state: ExtensionState, serverProfileDir?: str
 
         // Create or reuse combined output channel (all logs)
         if (!state.debugOutputChannel) {
-            state.debugOutputChannel = vscode.window.createOutputChannel('DevZ Debug - All Logs');
+            state.debugOutputChannel = createAndRegisterOutputChannel('DevZ Debug - All Logs');
         }
         if (!state.toolsOutputChannel) {
-            state.toolsOutputChannel = vscode.window.createOutputChannel('DevZ Tools');
+            state.toolsOutputChannel = createAndRegisterOutputChannel('DevZ Tools');
         }
 
         // Create individual output channels for each log type
         if (!state.serverRptOutputChannel) {
-            state.serverRptOutputChannel = vscode.window.createOutputChannel('DevZ Debug - Server RPT');
+            state.serverRptOutputChannel = createAndRegisterOutputChannel('DevZ Debug - Server RPT');
         }
         if (!state.clientRptOutputChannel) {
-            state.clientRptOutputChannel = vscode.window.createOutputChannel('DevZ Debug - Client RPT');
+            state.clientRptOutputChannel = createAndRegisterOutputChannel('DevZ Debug - Client RPT');
         }
         if (!state.serverScriptLogOutputChannel) {
-            state.serverScriptLogOutputChannel = vscode.window.createOutputChannel('DevZ Debug - Server Script Log');
+            state.serverScriptLogOutputChannel = createAndRegisterOutputChannel('DevZ Debug - Server Script Log');
         }
         if (!state.clientScriptLogOutputChannel) {
-            state.clientScriptLogOutputChannel = vscode.window.createOutputChannel('DevZ Debug - Client Script Log');
+            state.clientScriptLogOutputChannel = createAndRegisterOutputChannel('DevZ Debug - Client Script Log');
         }
         if (!state.adminLogOutputChannel) {
-            state.adminLogOutputChannel = vscode.window.createOutputChannel('DevZ Debug - Admin Log');
+            state.adminLogOutputChannel = createAndRegisterOutputChannel('DevZ Debug - Admin Log');
         }
         if (!state.serverCrashLogOutputChannel) {
-            state.serverCrashLogOutputChannel = vscode.window.createOutputChannel('DevZ Debug - Server Crash Log');
+            state.serverCrashLogOutputChannel = createAndRegisterOutputChannel('DevZ Debug - Server Crash Log');
         }
         if (!state.clientCrashLogOutputChannel) {
-            state.clientCrashLogOutputChannel = vscode.window.createOutputChannel('DevZ Debug - Client Crash Log');
+            state.clientCrashLogOutputChannel = createAndRegisterOutputChannel('DevZ Debug - Client Crash Log');
         }
 
         // Initialize header for combined channel

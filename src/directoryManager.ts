@@ -5,6 +5,7 @@ import { promisify } from 'util';
 import { getExtensionSettings } from './config';
 import { ModInfo, ModSummary } from './types';
 import { showMeaningfulNotification, showAutoHideNotification } from './utils';
+import { createAndRegisterOutputChannel } from './disposables';
 
 const stat = promisify(fs.stat);
 const readdir = promisify(fs.readdir);
@@ -241,7 +242,7 @@ export async function showModsSummary(): Promise<void> {
         const sortedMods = [...summary.mods].sort((a, b) => (b.size || 0) - (a.size || 0));
 
         // Show in an output channel for better readability
-        const outputChannel = vscode.window.createOutputChannel('DevZ Mods Summary');
+        const outputChannel = createAndRegisterOutputChannel('DevZ Mods Summary');
         outputChannel.clear();
         outputChannel.appendLine('='.repeat(50));
         outputChannel.appendLine('DAYZ MODS SUMMARY (Sorted by Size)');

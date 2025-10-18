@@ -1,13 +1,10 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { showAutoHideNotification } from '../utils';
 
 /**
  * Main extension test suite
  */
 suite('DevZ Tools Extension Test Suite', () => {
-	showAutoHideNotification('Running DevZ Tools tests...', 'info', 2000);
-
 	test('Extension should be present', () => {
 		const extension = vscode.extensions.getExtension('devz-tools.devz-tools');
 		assert.ok(extension, 'DevZ Tools extension should be installed');
@@ -59,20 +56,29 @@ suite('DevZ Tools Extension Test Suite', () => {
 	});
 
 	test('Output channels should be available', () => {
-		// Test that the extension can create output channels
-		const debugChannel = vscode.window.createOutputChannel('DevZ Debug');
-		const toolsChannel = vscode.window.createOutputChannel('DevZ Tools');
+		let debugChannel: vscode.OutputChannel | undefined;
+		let toolsChannel: vscode.OutputChannel | undefined;
 
-		assert.ok(debugChannel, 'DevZ Debug output channel should be created');
-		assert.ok(toolsChannel, 'DevZ Tools output channel should be created');
+		try {
+			// Test that the extension can create output channels
+			debugChannel = vscode.window.createOutputChannel('DevZ Debug Test');
+			toolsChannel = vscode.window.createOutputChannel('DevZ Tools Test');
 
-		// Test basic functionality
-		debugChannel.appendLine('Test message');
-		toolsChannel.appendLine('Test message');
+			assert.ok(debugChannel, 'DevZ Debug output channel should be created');
+			assert.ok(toolsChannel, 'DevZ Tools output channel should be created');
 
-		// Clean up
-		debugChannel.dispose();
-		toolsChannel.dispose();
+			// Test basic functionality
+			debugChannel.appendLine('Test message');
+			toolsChannel.appendLine('Test message');
+		} finally {
+			// Clean up - ensure disposal even if assertions fail
+			if (debugChannel) {
+				debugChannel.dispose();
+			}
+			if (toolsChannel) {
+				toolsChannel.dispose();
+			}
+		}
 	});
 
 	test('Log file name formatting should work correctly', () => {

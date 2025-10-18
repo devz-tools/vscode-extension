@@ -4,6 +4,7 @@ import * as path from 'path';
 import { DevZSettings, ValidationResult, PathValidationResult } from './types';
 import { getExtensionSettings } from './config';
 import { showMeaningfulNotification, showAutoHideNotification } from './utils';
+import { createAndRegisterOutputChannel } from './disposables';
 
 /**
  * Validates all configured paths and settings on startup
@@ -219,7 +220,7 @@ export function showValidationResults(result: ValidationResult): void {
     if (result.errors.length > 0) {
         vscode.window.showErrorMessage('❌ DevZ configuration has errors. Check the output panel for details.');
 
-        const outputChannel = vscode.window.createOutputChannel('DevZ Configuration');
+        const outputChannel = createAndRegisterOutputChannel('DevZ Configuration');
         outputChannel.clear();
         outputChannel.appendLine('DevZ Configuration Validation Results');
         outputChannel.appendLine('====================================');
@@ -247,7 +248,7 @@ export function showValidationResults(result: ValidationResult): void {
             4000
         );
 
-        const outputChannel = vscode.window.createOutputChannel('DevZ Configuration');
+        const outputChannel = createAndRegisterOutputChannel('DevZ Configuration');
         outputChannel.clear();
         outputChannel.appendLine('DevZ Configuration Warnings');
         outputChannel.appendLine('===========================');

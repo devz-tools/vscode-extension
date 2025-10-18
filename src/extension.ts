@@ -17,6 +17,7 @@ import { ModHoverProvider, ModInlayHintsProvider } from './modTooltipProvider';
 import { createCommandHandler, createSilentCommandHandler, delay } from './utils';
 import { getEnforceLanguageConfig } from './enforceLangConfig';
 import { WebviewManager } from './webviewManager';
+import { setExtensionContext, clearExtensionContext, createAndRegisterOutputChannel } from './disposables';
 
 /**
  * Global extension state - maintains process information and logging state
@@ -91,7 +92,7 @@ async function showLogs(state: ExtensionState): Promise<void> {
 	switch (selected.channel) {
 		case 'all':
 			if (!state.debugOutputChannel) {
-				state.debugOutputChannel = vscode.window.createOutputChannel('DevZ Debug - All Logs');
+				state.debugOutputChannel = createAndRegisterOutputChannel('DevZ Debug - All Logs');
 				state.debugOutputChannel.appendLine('=== DevZ Debug - All Logs ===');
 				state.debugOutputChannel.appendLine('No log monitoring active. Start the server or client to begin monitoring.');
 			}
@@ -99,43 +100,43 @@ async function showLogs(state: ExtensionState): Promise<void> {
 			break;
 		case 'serverRpt':
 			if (!state.serverRptOutputChannel) {
-				state.serverRptOutputChannel = vscode.window.createOutputChannel('DevZ Debug - Server RPT');
+				state.serverRptOutputChannel = createAndRegisterOutputChannel('DevZ Debug - Server RPT');
 			}
 			channelToShow = state.serverRptOutputChannel;
 			break;
 		case 'clientRpt':
 			if (!state.clientRptOutputChannel) {
-				state.clientRptOutputChannel = vscode.window.createOutputChannel('DevZ Debug - Client RPT');
+				state.clientRptOutputChannel = createAndRegisterOutputChannel('DevZ Debug - Client RPT');
 			}
 			channelToShow = state.clientRptOutputChannel;
 			break;
 		case 'serverScriptLog':
 			if (!state.serverScriptLogOutputChannel) {
-				state.serverScriptLogOutputChannel = vscode.window.createOutputChannel('DevZ Debug - Server Script Log');
+				state.serverScriptLogOutputChannel = createAndRegisterOutputChannel('DevZ Debug - Server Script Log');
 			}
 			channelToShow = state.serverScriptLogOutputChannel;
 			break;
 		case 'clientScriptLog':
 			if (!state.clientScriptLogOutputChannel) {
-				state.clientScriptLogOutputChannel = vscode.window.createOutputChannel('DevZ Debug - Client Script Log');
+				state.clientScriptLogOutputChannel = createAndRegisterOutputChannel('DevZ Debug - Client Script Log');
 			}
 			channelToShow = state.clientScriptLogOutputChannel;
 			break;
 		case 'adminLog':
 			if (!state.adminLogOutputChannel) {
-				state.adminLogOutputChannel = vscode.window.createOutputChannel('DevZ Debug - Admin Log');
+				state.adminLogOutputChannel = createAndRegisterOutputChannel('DevZ Debug - Admin Log');
 			}
 			channelToShow = state.adminLogOutputChannel;
 			break;
 		case 'serverCrashLog':
 			if (!state.serverCrashLogOutputChannel) {
-				state.serverCrashLogOutputChannel = vscode.window.createOutputChannel('DevZ Debug - Server Crash Log');
+				state.serverCrashLogOutputChannel = createAndRegisterOutputChannel('DevZ Debug - Server Crash Log');
 			}
 			channelToShow = state.serverCrashLogOutputChannel;
 			break;
 		case 'clientCrashLog':
 			if (!state.clientCrashLogOutputChannel) {
-				state.clientCrashLogOutputChannel = vscode.window.createOutputChannel('DevZ Debug - Client Crash Log');
+				state.clientCrashLogOutputChannel = createAndRegisterOutputChannel('DevZ Debug - Client Crash Log');
 			}
 			channelToShow = state.clientCrashLogOutputChannel;
 			break;
@@ -151,11 +152,13 @@ async function showLogs(state: ExtensionState): Promise<void> {
  * Forces all .c and .cpp files in the workspace to use Enforce Script language
  * This ensures Enforce syntax highlighting takes priority over C/C++ extensions
  * @param context - The extension context for subscriptions
+ * @param state - Extension state to check shutdown status
  */
-function enforceLanguageOverride(context: vscode.ExtensionContext): void {
+function enforceLanguageOverride(context: vscode.ExtensionContext, state: ExtensionState): void {
 	// Set language for all currently open .c and .cpp files
 	vscode.workspace.textDocuments.forEach(document => {
-		if ((document.fileName.endsWith('.c') || document.fileName.endsWith('.cpp')) &&
+		if (!state.isShuttingDown &&
+			(document.fileName.endsWith('.c') || document.fileName.endsWith('.cpp')) &&
 			document.languageId !== 'enforcescript') {
 			vscode.languages.setTextDocumentLanguage(document, 'enforcescript');
 		}
@@ -163,7 +166,8 @@ function enforceLanguageOverride(context: vscode.ExtensionContext): void {
 
 	// Monitor for newly opened files and override their language
 	const openTextDocumentListener = vscode.workspace.onDidOpenTextDocument(document => {
-		if ((document.fileName.endsWith('.c') || document.fileName.endsWith('.cpp')) &&
+		if (!state.isShuttingDown &&
+			(document.fileName.endsWith('.c') || document.fileName.endsWith('.cpp')) &&
 			document.languageId !== 'enforcescript') {
 			vscode.languages.setTextDocumentLanguage(document, 'enforcescript');
 		}
@@ -176,6 +180,9 @@ function enforceLanguageOverride(context: vscode.ExtensionContext): void {
  */
 export function activate(context: vscode.ExtensionContext) {
 	console.log('DevZ Tools extension is now active!');
+
+	// Store context reference for managing disposables
+	setExtensionContext(context);
 
 	// Perform startup validation
 	performStartupValidation();
@@ -193,7 +200,7 @@ export function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(enforceLanguage);
 
 	// Force Enforce language for all .c and .cpp files (overrides C/C++ extensions)
-	enforceLanguageOverride(context);
+	enforceLanguageOverride(context, extensionState);
 
 	// Register mod tooltip providers
 	const modHoverProvider = new ModHoverProvider();
@@ -331,15 +338,28 @@ async function performStartupValidation(): Promise<void> {
 export function deactivate(): void {
 	console.log('DevZ Tools extension is deactivating...');
 
+	// Set shutting down flag to prevent new operations
+	extensionState.isShuttingDown = true;
+
 	// Clean up any running processes
 	if (extensionState.serverProcess && !extensionState.serverProcess.killed) {
 		console.log('Killing server process during deactivation');
-		extensionState.serverProcess.kill();
+		try {
+			extensionState.serverProcess.kill();
+		} catch (error) {
+			console.log('Error killing server process:', error);
+		}
 	}
 	if (extensionState.clientProcess && !extensionState.clientProcess.killed) {
 		console.log('Killing client process during deactivation');
-		extensionState.clientProcess.kill();
+		try {
+			extensionState.clientProcess.kill();
+		} catch (error) {
+			console.log('Error killing client process:', error);
+		}
 	}
+
+	// Clean up log watchers
 	if (extensionState.logWatchers && extensionState.logWatchers.length > 0) {
 		console.log('Closing log watchers during deactivation');
 		extensionState.logWatchers.forEach(watcher => {
@@ -352,41 +372,10 @@ export function deactivate(): void {
 		extensionState.logWatchers = [];
 	}
 
-	// Clean up output channels
-	if (extensionState.debugOutputChannel) {
-		extensionState.debugOutputChannel.dispose();
-		extensionState.debugOutputChannel = null;
-	}
-	if (extensionState.toolsOutputChannel) {
-		extensionState.toolsOutputChannel.dispose();
-		extensionState.toolsOutputChannel = null;
-	}
-	if (extensionState.serverRptOutputChannel) {
-		extensionState.serverRptOutputChannel.dispose();
-		extensionState.serverRptOutputChannel = null;
-	}
-	if (extensionState.clientRptOutputChannel) {
-		extensionState.clientRptOutputChannel.dispose();
-		extensionState.clientRptOutputChannel = null;
-	}
-	if (extensionState.serverScriptLogOutputChannel) {
-		extensionState.serverScriptLogOutputChannel.dispose();
-		extensionState.serverScriptLogOutputChannel = null;
-	}
-	if (extensionState.clientScriptLogOutputChannel) {
-		extensionState.clientScriptLogOutputChannel.dispose();
-		extensionState.clientScriptLogOutputChannel = null;
-	}
-	if (extensionState.adminLogOutputChannel) {
-		extensionState.adminLogOutputChannel.dispose();
-		extensionState.adminLogOutputChannel = null;
-	}
-	if (extensionState.serverCrashLogOutputChannel) {
-		extensionState.serverCrashLogOutputChannel.dispose();
-		extensionState.serverCrashLogOutputChannel = null;
-	}
-	if (extensionState.clientCrashLogOutputChannel) {
-		extensionState.clientCrashLogOutputChannel.dispose();
-		extensionState.clientCrashLogOutputChannel = null;
-	}
+	// Clear context reference
+	clearExtensionContext();
+
+	// Note: Output channels are automatically disposed by VS Code when the
+	// extension context is disposed, so we don't need to manually dispose them here.
+	// Manually disposing them can cause "DisposableStore already disposed" errors.
 }
