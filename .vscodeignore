@@ -16,3 +16,4 @@ test-workspace
 *.vsix
 .github
 webview-ui/**
+README-DEV-BACKUP.md
