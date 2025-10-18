@@ -189,6 +189,7 @@ git commit -m "feat: add new feature and update AGENTS.md context"
 - `DevZ: Wipe Server Data` - Clean server data for testing
 - `DevZ: Wipe Client Data` - Clean client data for testing
 - `DevZ: Show Mods Summary` - Display configured mods overview
+- `DevZ: Initialize Mod Boilerplate` - Clone and set up DayZ mod boilerplate from GitHub
 
 ### Directory Shortcuts
 - Open DayZ Client/Server/Tools directories
@@ -200,6 +201,7 @@ git commit -m "feat: add new feature and update AGENTS.md context"
 - Configuration validation
 - Status bar integration
 - Process monitoring and logging
+- Automatic mod boilerplate initialization from GitHub repository
 
 ## Configuration System
 

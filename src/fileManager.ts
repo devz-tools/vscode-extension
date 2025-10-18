@@ -264,7 +264,9 @@ export async function wipeClientData(): Promise<void> {
 
         if (!confirmed) {
             return;
-        } const repoDir = getWorkspaceRoot();
+        }
+
+        const repoDir = getWorkspaceRoot();
         const outDir = path.join(repoDir, 'out');
         const clientProfileDir = path.join(outDir, 'ClientProfile');
 
@@ -275,5 +277,210 @@ export async function wipeClientData(): Promise<void> {
         showMeaningfulNotification('Client data wiped successfully!', 'success');
     } catch (error) {
         vscode.window.showErrorMessage(`Failed to wipe client data: ${error}`);
+    }
+}
+
+/**
+ * Initializes a DayZ mod boilerplate by cloning from the official repository
+ * This will clone the main branch of devz-tools/mod-boilerplate into the current workspace
+ * @throws Error if initialization fails or workspace is not empty
+ */
+export async function initializeModBoilerplate(): Promise<void> {
+    const workspaceRoot = getWorkspaceRoot();
+    const boilerplateRepo = 'https://github.com/devz-tools/mod-boilerplate';
+
+    // Check if workspace is valid
+    if (!workspaceRoot) {
+        throw new Error('No workspace folder found. Please open a folder first.');
+    }
+
+    // Check what files exist in the workspace
+    const files = fs.readdirSync(workspaceRoot);
+    const nonGitFiles = files.filter(f => !f.startsWith('.git') && f !== 'README.md');
+
+    if (nonGitFiles.length > 0) {
+        const confirmed = await confirmDestructiveAction(
+            `This will overwrite existing files in the workspace. Found: ${nonGitFiles.join(', ')}. Continue?`,
+            'Yes, Initialize'
+        );
+
+        if (!confirmed) {
+            return;
+        }
+    } else {
+        const confirmed = await confirmDestructiveAction(
+            'This will initialize the DayZ mod boilerplate in this workspace. Any existing README.md will be overwritten. Continue?',
+            'Yes, Initialize'
+        );
+
+        if (!confirmed) {
+            return;
+        }
+    }
+
+    // Clone the repository to a temporary directory
+    const tempDir = path.join(workspaceRoot, '.temp-boilerplate');
+
+    try {
+        // Remove temp directory if it already exists from a previous failed attempt
+        if (fs.existsSync(tempDir)) {
+            await removeTempDirectoryWithRetry(tempDir);
+        }
+
+        // Clone the repository
+        await new Promise<void>((resolve, reject) => {
+            const gitClone = spawn('git', [
+                'clone',
+                '--branch', 'main',
+                '--single-branch',
+                '--depth', '1',
+                boilerplateRepo,
+                tempDir
+            ], {
+                cwd: workspaceRoot,
+                shell: true
+            });
+
+            let errorOutput = '';
+
+            gitClone.stderr?.on('data', (data) => {
+                errorOutput += data.toString();
+                console.log(data.toString());
+            });
+
+            gitClone.stdout?.on('data', (data) => {
+                console.log(data.toString());
+            });
+
+            gitClone.on('close', (code) => {
+                if (code === 0) {
+                    resolve();
+                } else {
+                    reject(new Error(`Git clone failed with code ${code}: ${errorOutput}`));
+                }
+            });
+
+            gitClone.on('error', (error) => {
+                reject(new Error(`Failed to execute git: ${error.message}`));
+            });
+        });
+
+        // Wait a bit to ensure git process has fully released file handles
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Copy all files from temp directory to workspace root
+        const filesToCopy = fs.readdirSync(tempDir);
+
+        for (const file of filesToCopy) {
+            // Skip .git directory from the cloned repo
+            if (file === '.git') {
+                continue;
+            }
+
+            const sourcePath = path.join(tempDir, file);
+            const destPath = path.join(workspaceRoot, file);
+
+            // Remove destination if it exists
+            if (fs.existsSync(destPath)) {
+                const stat = fs.statSync(destPath);
+                if (stat.isDirectory()) {
+                    fs.rmSync(destPath, { recursive: true, force: true });
+                } else {
+                    fs.unlinkSync(destPath);
+                }
+            }
+
+            // Copy file or directory
+            const stat = fs.statSync(sourcePath);
+            if (stat.isDirectory()) {
+                copyDirectoryRecursive(sourcePath, destPath);
+            } else {
+                fs.copyFileSync(sourcePath, destPath);
+            }
+        }
+
+        // Clean up temp directory with retry logic
+        await removeTempDirectoryWithRetry(tempDir);
+
+        showMeaningfulNotification('DayZ mod boilerplate initialized successfully!', 'success', true);
+
+    } catch (error) {
+        // Clean up temp directory if it exists - use retry logic
+        if (fs.existsSync(tempDir)) {
+            try {
+                await removeTempDirectoryWithRetry(tempDir);
+            } catch (cleanupError) {
+                console.error('Failed to clean up temp directory:', cleanupError);
+                // Don't throw this error, just log it
+            }
+        }
+        throw error;
+    }
+}
+
+/**
+ * Removes a temporary directory with retry logic to handle locked files
+ * @param dirPath - Path to the directory to remove
+ * @param maxRetries - Maximum number of retry attempts (default: 5)
+ * @param retryDelay - Delay between retries in milliseconds (default: 1000)
+ * @throws Error if directory cannot be removed after all retries
+ */
+async function removeTempDirectoryWithRetry(
+    dirPath: string,
+    maxRetries: number = 5,
+    retryDelay: number = 1000
+): Promise<void> {
+    let lastError: Error | null = null;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            // Try to remove the directory
+            fs.rmSync(dirPath, { recursive: true, force: true, maxRetries: 3 });
+            return; // Success!
+        } catch (error) {
+            lastError = error instanceof Error ? error : new Error(String(error));
+
+            // If it's the last attempt, throw the error
+            if (attempt === maxRetries) {
+                break;
+            }
+
+            // Wait before retrying
+            console.log(`Failed to remove temp directory (attempt ${attempt}/${maxRetries}), retrying in ${retryDelay}ms...`);
+            await new Promise(resolve => setTimeout(resolve, retryDelay));
+
+            // Increase delay for next attempt
+            retryDelay *= 1.5;
+        }
+    }
+
+    // If we get here, all retries failed
+    throw new Error(`Failed to remove temporary directory after ${maxRetries} attempts: ${lastError?.message}`);
+}
+
+/**
+ * Recursively copies a directory from source to destination
+ * @param source - Source directory path
+ * @param destination - Destination directory path
+ */
+function copyDirectoryRecursive(source: string, destination: string): void {
+    // Create destination directory
+    if (!fs.existsSync(destination)) {
+        fs.mkdirSync(destination, { recursive: true });
+    }
+
+    // Read all files/folders in source
+    const files = fs.readdirSync(source);
+
+    for (const file of files) {
+        const sourcePath = path.join(source, file);
+        const destPath = path.join(destination, file);
+        const stat = fs.statSync(sourcePath);
+
+        if (stat.isDirectory()) {
+            copyDirectoryRecursive(sourcePath, destPath);
+        } else {
+            fs.copyFileSync(sourcePath, destPath);
+        }
     }
 }

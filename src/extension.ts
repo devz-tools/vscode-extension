@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { ExtensionState } from './types';
 import { createStatusBarItems, configureStatusBarItems, updateStatusBar } from './statusBar';
 import { startServer, startClient, stopAllProcesses } from './processManager';
-import { createModBase, packPBO, wipeServerData, wipeClientData } from './fileManager';
+import { createModBase, packPBO, wipeServerData, wipeClientData, initializeModBoilerplate } from './fileManager';
 import { validateStartupConfiguration, showValidationResults } from './validation';
 import { getExtensionSettings } from './config';
 import {
@@ -235,6 +235,11 @@ export function activate(context: vscode.ExtensionContext) {
 		createCommandHandler('Show Logs', () => showLogs(extensionState))
 	);
 
+	const initializeModBoilerplateCommand = vscode.commands.registerCommand(
+		'devz-tools.initializeModBoilerplate',
+		createCommandHandler('Initialize Mod Boilerplate', initializeModBoilerplate)
+	);
+
 	// Add all disposables to context subscriptions
 	context.subscriptions.push(
 		packPBOCommand,
@@ -248,6 +253,7 @@ export function activate(context: vscode.ExtensionContext) {
 		openWorkshopDirectoryCommand,
 		showModsSummaryCommand,
 		showLogsCommand,
+		initializeModBoilerplateCommand,
 		hoverProviderDisposable,
 		inlayHintsProviderDisposable,
 		...Object.values(statusBarItems)

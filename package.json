@@ -60,6 +60,10 @@
       {
         "command": "devz-tools.showLogs",
         "title": "DevZ: Show Logs"
+      },
+      {
+        "command": "devz-tools.initializeModBoilerplate",
+        "title": "DevZ: Initialize Mod Boilerplate"
       }
     ],
     "menus": {
@@ -100,6 +104,9 @@
         },
         {
           "command": "devz-tools.showLogs"
+        },
+        {
+          "command": "devz-tools.initializeModBoilerplate"
         }
       ]
     },
