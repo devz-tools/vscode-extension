@@ -36,12 +36,26 @@ export interface ExtensionState {
     clientProcess: ChildProcess | null;
     /** Whether the extension is currently shutting down processes */
     isShuttingDown: boolean;
-    /** Output channel for logging server/client output */
-    logOutputChannel: vscode.OutputChannel | null;
-    /** File system watcher for log files */
-    logWatcher: fs.FSWatcher | null;
-    /** Global output channel for general extension logging */
-    globalLogChannel: vscode.OutputChannel | null;
+    /** Output channel for combined DayZ server/client runtime logs (all logs) */
+    debugOutputChannel: vscode.OutputChannel | null;
+    /** Output channel for Server RPT logs only */
+    serverRptOutputChannel?: vscode.OutputChannel | null;
+    /** Output channel for Client RPT logs only */
+    clientRptOutputChannel?: vscode.OutputChannel | null;
+    /** Output channel for Server Script logs only */
+    serverScriptLogOutputChannel?: vscode.OutputChannel | null;
+    /** Output channel for Client Script logs only */
+    clientScriptLogOutputChannel?: vscode.OutputChannel | null;
+    /** Output channel for Admin logs only */
+    adminLogOutputChannel?: vscode.OutputChannel | null;
+    /** Output channel for Server Crash logs only */
+    serverCrashLogOutputChannel?: vscode.OutputChannel | null;
+    /** Output channel for Client Crash logs only */
+    clientCrashLogOutputChannel?: vscode.OutputChannel | null;
+    /** File system watchers for log files (supports multiple directories) */
+    logWatchers: fs.FSWatcher[];
+    /** Output channel for DevZ Tools internal logging and command output */
+    toolsOutputChannel: vscode.OutputChannel | null;
     /** Whether log monitoring is currently active */
     logMonitoringActive: boolean;
 }

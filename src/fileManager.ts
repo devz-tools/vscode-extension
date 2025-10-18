@@ -8,8 +8,9 @@ import { confirmDestructiveAction, showMeaningfulNotification } from './utils';
 /**
  * Clears old log files from the specified profile directory
  * @param profileDir - The profile directory path to clean
+ * @param debugOutputChannel - Optional debug output channel to clear
  */
-export function clearOldLogs(profileDir: string): void {
+export function clearOldLogs(profileDir: string, debugOutputChannel?: vscode.OutputChannel): void {
     try {
         if (!fs.existsSync(profileDir)) {
             return;
@@ -38,6 +39,11 @@ export function clearOldLogs(profileDir: string): void {
                 }
             }
         });
+
+        // Clear the debug output channel if provided
+        if (debugOutputChannel) {
+            debugOutputChannel.clear();
+        }
     } catch (error) {
         console.log(`Error clearing logs: ${error}`);
     }

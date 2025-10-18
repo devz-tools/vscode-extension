@@ -56,6 +56,10 @@
       {
         "command": "devz-tools.showModsSummary",
         "title": "DevZ: Show Mods Summary"
+      },
+      {
+        "command": "devz-tools.showLogs",
+        "title": "DevZ: Show Logs"
       }
     ],
     "menus": {
@@ -93,6 +97,9 @@
         },
         {
           "command": "devz-tools.showModsSummary"
+        },
+        {
+          "command": "devz-tools.showLogs"
         }
       ]
     },
