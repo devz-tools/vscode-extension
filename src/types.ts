@@ -139,3 +139,61 @@ export interface ModSummary {
     /** Total number of mods */
     totalCount: number;
 }
+
+/**
+ * Interface representing flags configuration for a types.xml entry
+ */
+export interface TypeFlags {
+    /** Count items stored in cargo towards nominal/min values */
+    count_in_cargo: '0' | '1';
+    /** Count items in hoarding containers towards nominal/min values */
+    count_in_hoarder: '0' | '1';
+    /** Count items on the map towards nominal/min values */
+    count_in_map: '0' | '1';
+    /** Count items in player inventories towards nominal/min values */
+    count_in_player: '0' | '1';
+    /** Mark item as player-craftable only */
+    crafted: '0' | '1';
+    /** Mark item as dynamic event loot */
+    deloot: '0' | '1';
+}
+
+/**
+ * Interface representing a single type entry in types.xml
+ */
+export interface TypeEntry {
+    /** Unique name/identifier for the item */
+    name: string;
+    /** Target number to maintain on server */
+    nominal: number;
+    /** Time in seconds before item despawns */
+    lifetime: number;
+    /** Minimum time in seconds before item can respawn */
+    restock: number;
+    /** Minimum number that should always be present */
+    min: number;
+    /** Minimum quantity for fillable items (-1 for non-fillable) */
+    quantmin: number;
+    /** Maximum quantity for fillable items (-1 for non-fillable) */
+    quantmax: number;
+    /** Weighting value for spawn probability */
+    cost: number;
+    /** Flag configuration */
+    flags: TypeFlags;
+    /** Item category (e.g., weapons, food, tools) */
+    category: string;
+    /** Array of tag names for spawn filtering */
+    tags: string[];
+    /** Array of usage contexts (e.g., Military, Town) */
+    usages: string[];
+    /** Array of value tiers (e.g., Tier1, Tier2) */
+    values: string[];
+}
+
+/**
+ * Interface for the complete types.xml document
+ */
+export interface TypesDocument {
+    /** Array of all type entries */
+    types: TypeEntry[];
+}

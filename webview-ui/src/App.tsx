@@ -11,19 +11,10 @@ interface FileViewerProps {
     filePath: string;
 }
 
-declare global {
-    interface Window {
-        acquireVsCodeApi: () => {
-            postMessage: (message: any) => void;
-            getState: () => any;
-            setState: (state: any) => void;
-        };
-    }
-}
-
-const vscode = window.acquireVsCodeApi();
-
 const App: React.FC = () => {
+    // Get the VS Code API (already acquired in index.tsx)
+    const vscode = window.vscode;
+
     const [fileData, setFileData] = useState<FileViewerProps | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
 

@@ -17,6 +17,7 @@ import { ModHoverProvider, ModInlayHintsProvider } from './modTooltipProvider';
 import { createCommandHandler, createSilentCommandHandler, delay } from './utils';
 import { getEnforceLanguageConfig } from './enforceLangConfig';
 import { WebviewManager } from './webviewManager';
+import { TypesEditorManager } from './typesEditorManager';
 import { setExtensionContext, clearExtensionContext, createAndRegisterOutputChannel } from './disposables';
 
 /**
@@ -298,6 +299,89 @@ export function activate(context: vscode.ExtensionContext) {
 		})
 	);
 
+	const openTypesEditorCommand = vscode.commands.registerCommand(
+		'devz-tools.openTypesEditor',
+		createCommandHandler('Open Types Editor', async (uri?: vscode.Uri) => {
+			// If no URI provided, try to get the active editor's URI
+			const fileUri = uri || vscode.window.activeTextEditor?.document.uri;
+
+			if (!fileUri) {
+				vscode.window.showErrorMessage('No types.xml file selected');
+				return;
+			}
+
+			// Check if this is a types.xml file
+			const fileName = fileUri.fsPath.toLowerCase();
+			if (!fileName.endsWith('types.xml')) {
+				vscode.window.showWarningMessage('This command only works with types.xml files');
+				return;
+			}
+
+			await TypesEditorManager.openTypesEditor(context, fileUri);
+		})
+	);
+
+	// Track which files we've already prompted for to avoid repeated prompts
+	const promptedFiles = new Set<string>();
+
+	// Listen for when types.xml files are opened and suggest using the custom editor
+	const documentOpenListener = vscode.window.onDidChangeActiveTextEditor(async (editor) => {
+		// Check if we have an active editor
+		if (!editor) {
+			return;
+		}
+
+		const document = editor.document;
+
+		// Only check XML files
+		if (document.languageId !== 'xml') {
+			return;
+		}
+
+		// Check if this is a types.xml file
+		const fileName = document.fileName.toLowerCase();
+		if (!fileName.endsWith('types.xml')) {
+			return;
+		}
+
+		// Don't prompt if we've already prompted for this file in this session
+		if (promptedFiles.has(document.uri.toString())) {
+			return;
+		}
+
+		// Mark as prompted
+		promptedFiles.add(document.uri.toString());
+
+		// Add a small delay to ensure the editor is fully loaded
+		await delay(100);
+
+		// Show suggestion to use custom editor
+		const action = await vscode.window.showInformationMessage(
+			'Would you like to open this types.xml file in the DevZ Types Editor?',
+			'Open in Types Editor',
+			'Keep in Text Editor'
+		);
+
+		if (action === 'Open in Types Editor') {
+			// Open the custom editor first
+			await TypesEditorManager.openTypesEditor(context, document.uri);
+
+			// Find and close the text editor tab with this document
+			const tabs = vscode.window.tabGroups.all.flatMap(group => group.tabs);
+			const textEditorTab = tabs.find(tab => {
+				const input = tab.input;
+				if (input && typeof input === 'object' && 'uri' in input) {
+					return (input as { uri: vscode.Uri }).uri.toString() === document.uri.toString();
+				}
+				return false;
+			});
+
+			if (textEditorTab) {
+				await vscode.window.tabGroups.close(textEditorTab);
+			}
+		}
+	});
+
 	// Add all disposables to context subscriptions
 	context.subscriptions.push(
 		packPBOCommand,
@@ -313,6 +397,8 @@ export function activate(context: vscode.ExtensionContext) {
 		showLogsCommand,
 		initializeModBoilerplateCommand,
 		openFileInCustomViewerCommand,
+		openTypesEditorCommand,
+		documentOpenListener,
 		hoverProviderDisposable,
 		inlayHintsProviderDisposable,
 		...Object.values(statusBarItems)

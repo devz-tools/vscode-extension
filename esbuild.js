@@ -52,6 +52,7 @@ async function main() {
 		sourcemap: !production,
 		platform: 'browser',
 		outfile: 'dist/webview.js',
+		external: ['*.css'], // Exclude CSS files from bundle (handled by Tailwind CLI)
 		logLevel: 'silent',
 		plugins: [
 			esbuildProblemMatcherPlugin,

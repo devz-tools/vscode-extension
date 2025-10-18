@@ -19,6 +19,7 @@ A community-driven VS Code extension designed to streamline DayZ mod development
 - **Server & Client Management** - Start DayZ server and client simultaneously
 - **Data Management** - Clean server and client data for testing
 - **Mod Overview** - Get a summary of all configured mods
+- **Types Editor** - Browse and edit DayZ types in a dedicated webview with search and filtering
 
 ### Directory Shortcuts
 - Quick access to DayZ Client, Server, and Tools directories

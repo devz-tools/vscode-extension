@@ -160,6 +160,10 @@
       {
         "command": "devz-tools.openFileInCustomViewer",
         "title": "DevZ: Open in Custom Viewer"
+      },
+      {
+        "command": "devz-tools.openTypesEditor",
+        "title": "DevZ: Open Types Editor"
       }
     ],
     "menus": {
@@ -168,12 +172,22 @@
           "command": "devz-tools.openFileInCustomViewer",
           "when": "!explorerResourceIsFolder",
           "group": "navigation@1"
+        },
+        {
+          "command": "devz-tools.openTypesEditor",
+          "when": "resourceFilename == types.xml",
+          "group": "navigation@2"
         }
       ],
       "editor/context": [
         {
           "command": "devz-tools.openFileInCustomViewer",
           "group": "navigation@1"
+        },
+        {
+          "command": "devz-tools.openTypesEditor",
+          "when": "resourceFilename == types.xml",
+          "group": "navigation@2"
         }
       ],
       "commandPalette": [
@@ -219,6 +233,9 @@
         },
         {
           "command": "devz-tools.openFileInCustomViewer"
+        },
+        {
+          "command": "devz-tools.openTypesEditor"
         }
       ]
     },

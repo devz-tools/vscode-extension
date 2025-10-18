@@ -162,6 +162,7 @@ export class WebviewManager {
 <body>
     <div id="root"></div>
     <script nonce="${nonce}">
+        window.__WEBVIEW_TYPE__ = 'fileViewer';
         window.initialData = ${JSON.stringify({ fileName, fileContent, filePath })};
     </script>
     <script nonce="${nonce}" src="${scriptUri}"></script>
