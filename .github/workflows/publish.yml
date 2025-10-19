@@ -34,6 +34,20 @@ jobs:
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: stable
+          cache: true
+        
+      - name: Cache Rust dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            enforce-script-lsp/target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('enforce-script-lsp/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
         
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -44,6 +58,19 @@ jobs:
         uses: pnpm/action-setup@v4
         with:
           version: latest
+          
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+          
+      - name: Cache pnpm dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
           
       - name: Install dependencies
         run: pnpm install --frozen-lockfile

@@ -78,8 +78,8 @@
 - `scripts/swap-readme.ps1` - PowerShell script for README swapping during packaging
 - `scripts/build-lsp.ps1` - PowerShell script for building the Enforce Script LSP server (cross-platform compatible)
 - `.github/workflows/` - GitHub Actions for CI/CD and publishing
-  - `ci.yml` - Continuous integration workflow (runs on push/PR, includes Rust setup and LSP building)
-  - `publish.yml` - Publishing workflow (builds and publishes to VS Code Marketplace, includes LSP building)
+  - `ci.yml` - Continuous integration workflow (runs on push/PR, includes Rust setup, LSP building, and comprehensive caching)
+  - `publish.yml` - Publishing workflow (builds and publishes to VS Code Marketplace, includes LSP building and caching)
 - `dist/` - Built extension files (generated)
   - `extension.js` - Compiled extension code
   - `webview.js` - Compiled React application
