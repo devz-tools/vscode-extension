@@ -2,7 +2,7 @@
   "name": "devz-tools",
   "displayName": "DevZ Tools",
   "description": "A community VSCode extension for developing DayZ mods, mission files, and server experiences.",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "repository": "https://github.com/devz-tools/vscode-extension",
   "publisher": "devz-tools",
   "engines": {
@@ -301,6 +301,8 @@
     "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
     "watch:css": "tailwindcss -i ./webview-ui/src/styles.css -o ./dist/styles.css --watch",
     "build:css": "tailwindcss -i ./webview-ui/src/styles.css -o ./dist/styles.css --minify",
+    "build:lsp": "node -e \"require('child_process').execSync(process.platform === 'win32' ? 'pwsh -ExecutionPolicy Bypass -File scripts/build-lsp.ps1' : 'cd enforce-script-lsp && cargo build --release', {stdio: 'inherit'})\"",
+    "prepackage": "pnpm run build:lsp",
     "package": "pnpm run check-types && pnpm run lint && pnpm run build:css && node esbuild.js --production",
     "compile-tests": "tsc -p . --outDir out",
     "watch-tests": "tsc -p . -w --outDir out",
@@ -310,8 +312,8 @@
     "test": "vscode-test",
     "swap-readme:prepare": "pwsh -ExecutionPolicy Bypass -File scripts/swap-readme.ps1 prepare",
     "swap-readme:restore": "pwsh -ExecutionPolicy Bypass -File scripts/swap-readme.ps1 restore",
-    "vscode:package": "pnpm run swap-readme:prepare && vsce package && pnpm run swap-readme:restore",
-    "vscode:publish": "pnpm run swap-readme:prepare && vsce publish && pnpm run swap-readme:restore"
+    "vscode:package": "pnpm run package && pnpm run swap-readme:prepare && vsce package && pnpm run swap-readme:restore",
+    "vscode:publish": "pnpm run package && pnpm run swap-readme:prepare && vsce publish && pnpm run swap-readme:restore"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.14",
@@ -336,5 +338,8 @@
     "react-dom": "^19.2.0",
     "tailwindcss": "^4.1.14",
     "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
   }
 }

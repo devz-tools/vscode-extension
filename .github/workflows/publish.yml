@@ -14,6 +14,11 @@ on:
         required: false
         default: false
         type: boolean
+      dry-run:
+        description: 'Dry run - build and package but do not publish'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   publish:
@@ -22,6 +27,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
+        
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
         
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -42,6 +54,9 @@ jobs:
       - name: Lint code
         run: pnpm run lint
         
+      - name: Build LSP
+        run: pnpm run build:lsp
+        
       - name: Build extension
         run: pnpm run package
         
@@ -57,31 +72,19 @@ jobs:
       - name: Install vsce
         run: pnpm add -g @vscode/vsce
         
-      - name: Publish to VSCode Marketplace
-        env:
-          VSCE_PAT: ${{ secrets.VSCODE_MARKETPLACE_TOKEN }}
+      - name: Package extension
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             if [[ -n "${{ github.event.inputs.version }}" ]]; then
-              VERSION_ARG="--packagePath devz-tools-${{ github.event.inputs.version }}.vsix"
               pnpm run swap-readme:prepare
               vsce package ${{ github.event.inputs.version }}
               pnpm run swap-readme:restore
+              VSIX_FILE="devz-tools-${{ github.event.inputs.version }}.vsix"
             else
               pnpm run vscode:package
-              VERSION_ARG=""
-            fi
-            
-            if [[ "${{ github.event.inputs.pre-release }}" == "true" ]]; then
-              PRE_RELEASE_ARG="--pre-release"
-            else
-              PRE_RELEASE_ARG=""
-            fi
-            
-            if [[ -n "$VERSION_ARG" ]]; then
-              vsce publish $PRE_RELEASE_ARG $VERSION_ARG
-            else
-              pnpm run vscode:publish $PRE_RELEASE_ARG
+              # Extract version from package.json to get VSIX filename
+              PACKAGE_VERSION=$(node -p "require('./package.json').version")
+              VSIX_FILE="devz-tools-${PACKAGE_VERSION}.vsix"
             fi
           else
             # For releases, extract version from tag
@@ -90,14 +93,53 @@ jobs:
             pnpm run swap-readme:prepare
             vsce package $TAG_VERSION
             pnpm run swap-readme:restore
-            
-            # Check if it's a pre-release
-            if [[ "${{ github.event.release.prerelease }}" == "true" ]]; then
-              vsce publish --pre-release --packagePath devz-tools-$TAG_VERSION.vsix
+            VSIX_FILE="devz-tools-${TAG_VERSION}.vsix"
+          fi
+          
+          # Output VSIX filename for next steps
+          echo "VSIX_FILE=${VSIX_FILE}" >> $GITHUB_ENV
+          
+          # Display package info
+          echo "📦 Package created: ${VSIX_FILE}"
+          ls -lh *.vsix
+          
+      - name: Publish to VSCode Marketplace
+        if: ${{ github.event.inputs.dry-run != 'true' }}
+        env:
+          VSCE_PAT: ${{ secrets.VSCODE_MARKETPLACE_TOKEN }}
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            if [[ "${{ github.event.inputs.pre-release }}" == "true" ]]; then
+              PRE_RELEASE_ARG="--pre-release"
             else
-              vsce publish --packagePath devz-tools-$TAG_VERSION.vsix
+              PRE_RELEASE_ARG=""
+            fi
+            
+            echo "🚀 Publishing ${VSIX_FILE}..."
+            vsce publish $PRE_RELEASE_ARG --packagePath ${VSIX_FILE}
+          else
+            # For releases, check if it's a pre-release
+            if [[ "${{ github.event.release.prerelease }}" == "true" ]]; then
+              echo "🚀 Publishing ${VSIX_FILE} as pre-release..."
+              vsce publish --pre-release --packagePath ${VSIX_FILE}
+            else
+              echo "🚀 Publishing ${VSIX_FILE}..."
+              vsce publish --packagePath ${VSIX_FILE}
             fi
           fi
+          
+      - name: Dry run summary
+        if: ${{ github.event.inputs.dry-run == 'true' }}
+        run: |
+          echo "🧪 DRY RUN MODE - Package created but not published"
+          echo "📦 VSIX file: ${VSIX_FILE}"
+          echo ""
+          echo "Package details:"
+          unzip -l ${VSIX_FILE} | head -20
+          echo "..."
+          echo ""
+          echo "To publish manually, run:"
+          echo "  vsce publish --packagePath ${VSIX_FILE}"
           
       - name: Upload VSIX as artifact
         uses: actions/upload-artifact@v4

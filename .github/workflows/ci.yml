@@ -18,6 +18,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
+        
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
         
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
@@ -37,6 +44,9 @@ jobs:
         
       - name: Lint code
         run: pnpm run lint
+        
+      - name: Build LSP
+        run: pnpm run build:lsp
         
       - name: Build extension
         run: pnpm run package
@@ -62,6 +72,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
+        
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
         
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -75,6 +92,9 @@ jobs:
           
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+        
+      - name: Build LSP
+        run: pnpm run build:lsp
         
       - name: Package extension
         run: |

@@ -1,3 +1,6 @@
 [submodule "test-workspace"]
 	path = test-workspace
 	url = https://github.com/devz-tools/mod-boilerplate.git
+[submodule "enforce-script-lsp"]
+	path = enforce-script-lsp
+	url = https://github.com/devz-tools/enforce-script-lsp

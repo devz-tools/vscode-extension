@@ -39,6 +39,7 @@
 - `validation.ts` - Configuration validation and error checking
 - `modTooltipProvider.ts` - Hover providers for mod information display
 - `enforceLangConfig.ts` - Enforce Script language configuration and features
+- `lspClient.ts` - Language Server Protocol client for Enforce Script LSP integration
 - `webviewManager.ts` - Webview panel management for React-based custom GUI views
 - `typesEditorManager.ts` - Specialized webview manager for types.xml editor with auto-save
 - `xmlUtils.ts` - XML parsing and serialization utilities for types.xml
@@ -75,11 +76,21 @@
 
 ### Build & Deployment
 - `scripts/swap-readme.ps1` - PowerShell script for README swapping during packaging
+- `scripts/build-lsp.ps1` - PowerShell script for building the Enforce Script LSP server (cross-platform compatible)
 - `.github/workflows/` - GitHub Actions for CI/CD and publishing
+  - `ci.yml` - Continuous integration workflow (runs on push/PR, includes Rust setup and LSP building)
+  - `publish.yml` - Publishing workflow (builds and publishes to VS Code Marketplace, includes LSP building)
 - `dist/` - Built extension files (generated)
   - `extension.js` - Compiled extension code
   - `webview.js` - Compiled React application
   - `styles.css` - Compiled Tailwind CSS
+
+### LSP Integration
+- `enforce-script-lsp/` - Enforce Script Language Server Protocol implementation (git submodule)
+  - Rust-based LSP server for Enforce Script language features
+  - Binary location: `enforce-script-lsp/target/release/enforce-script-lsp(.exe)`
+  - Provides: diagnostics, completion, hover, go-to-definition, find references, etc.
+  - Build with: `pnpm run build:lsp` or `cargo build --release` in submodule directory
 
 ### Test Environment
 - `test-workspace/` - Complete DayZ mod boilerplate for testing (git submodule)
@@ -271,6 +282,8 @@ A comprehensive GUI editor for DayZ mission types.xml files with advanced featur
   - Previous/Next navigation buttons with disabled states
 
 ### Enforce Script Language Support
+
+#### Syntax Highlighting & Basic Features
 - **Syntax Highlighting** - Comprehensive TextMate grammar for Enforce Script (.c, .cpp files)
   - Keywords: control flow (if/else/for/while/foreach/switch), operators (new/delete), special (this/super/null)
   - Storage types: primitives (int/float/bool/string/vector), classes, templates (array/map/set)
@@ -290,6 +303,38 @@ A comprehensive GUI editor for DayZ mission types.xml files with advanced featur
   - Automatic language mode detection and override on file open
   - File pattern matching for workspace-wide application
   - Workspace settings configured in test-workspace/.vscode/settings.json
+
+#### Language Server Protocol (LSP) Integration
+- **Advanced IntelliSense** - Context-aware code completion powered by Rust-based LSP server
+  - All Enforce Script keywords and built-in symbols
+  - Workspace-wide symbol resolution
+  - Smart completion suggestions based on context
+- **Real-time Diagnostics** - Syntax and semantic error detection as you type
+  - Parser errors with precise line/column information
+  - Undefined variable warnings
+  - Type checking and validation
+- **Hover Information** - Rich symbol documentation on hover
+  - Symbol type and kind display
+  - Definition location highlighting
+  - Markdown-formatted code examples
+- **Go to Definition** - Navigate directly to symbol definitions
+  - Works with classes, functions, methods, variables
+  - Jump to definition across files
+- **Find All References** - Locate all usages of a symbol
+  - Document-wide and workspace-wide search
+  - Lists all occurrences with context
+- **Signature Help** - Function/method parameter hints while typing
+  - Parameter information and types
+  - Current parameter highlighting
+- **Document Symbols** - Hierarchical outline view in sidebar
+  - Classes with fields and methods
+  - Functions and enums
+  - Nested symbol structure
+- **Code Folding** - Smart folding for classes, methods, and blocks
+- **Auto-build Support** - LSP server compiled during extension build
+  - Requires Rust toolchain (cargo) to build from source
+  - Pre-built binaries included in VSIX package
+  - Build manually: `pnpm run build:lsp`
 
 **Note**: Enforce Script uses `.c` and `.cpp` file extensions exclusively (not `.h` headers)
 
@@ -346,6 +391,7 @@ The extension uses VS Code's configuration system with the prefix `devz-tools.*`
 - Requires DayZ client, server, and tools installed via Steam
 - Expects DayZ mod project structure with `src/config.cpp`
 - Uses PowerShell for some operations (Windows-focused)
+- **Optional**: Rust toolchain (cargo) for building LSP server from source
 
 ## Build System
 
@@ -364,9 +410,11 @@ The extension uses VS Code's configuration system with the prefix `devz-tools.*`
 - `pnpm run watch:tsc` - Watch and type-check TypeScript
 - `pnpm run watch:css` - Watch and rebuild Tailwind CSS
 - `pnpm run build:css` - Build Tailwind CSS (minified)
-- `pnpm run package` - Production build
-- `pnpm run vscode:package` - Create VSIX with marketplace README
-- `pnpm run vscode:publish` - Publish to marketplace with README swapping
+- `pnpm run build:lsp` - Build Enforce Script LSP server (cross-platform: uses PowerShell on Windows, cargo directly on Linux/macOS)
+- `pnpm run prepackage` - Automatically runs before package to build LSP (runs via npm lifecycle hook)
+- `pnpm run package` - Production build (automatically builds LSP via prepackage hook, then builds extension)
+- `pnpm run vscode:package` - Create VSIX with marketplace README (builds LSP, builds extension, swaps README, creates VSIX)
+- `pnpm run vscode:publish` - Publish to marketplace with README swapping (builds LSP, builds extension, swaps README, publishes)
 
 ## README Management
 

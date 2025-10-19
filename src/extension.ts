@@ -19,6 +19,7 @@ import { getEnforceLanguageConfig } from './enforceLangConfig';
 import { WebviewManager } from './webviewManager';
 import { TypesEditorManager } from './typesEditorManager';
 import { setExtensionContext, clearExtensionContext, createAndRegisterOutputChannel } from './disposables';
+import { activateLspClient, deactivateLspClient } from './lspClient';
 
 /**
  * Global extension state - maintains process information and logging state
@@ -202,6 +203,12 @@ export function activate(context: vscode.ExtensionContext) {
 
 	// Force Enforce language for all .c and .cpp files (overrides C/C++ extensions)
 	enforceLanguageOverride(context, extensionState);
+
+	// Initialize Enforce Script Language Server Protocol (LSP) client
+	// Provides advanced language features like diagnostics, completion, hover, etc.
+	activateLspClient(context).catch(error => {
+		console.error('Failed to activate Enforce Script LSP client:', error);
+	});
 
 	// Register mod tooltip providers
 	const modHoverProvider = new ModHoverProvider();
@@ -421,11 +428,14 @@ async function performStartupValidation(): Promise<void> {
  * Extension deactivation function called when the extension is deactivated
  * Performs cleanup of running processes and resources
  */
-export function deactivate(): void {
+export async function deactivate(): Promise<void> {
 	console.log('DevZ Tools extension is deactivating...');
 
 	// Set shutting down flag to prevent new operations
 	extensionState.isShuttingDown = true;
+
+	// Stop the LSP client
+	await deactivateLspClient();
 
 	// Clean up any running processes
 	if (extensionState.serverProcess && !extensionState.serverProcess.killed) {

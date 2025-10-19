@@ -27,6 +27,7 @@ A community-driven VS Code extension designed to streamline DayZ mod development
 - Project Drive (P:\\) management
 
 ### Development Enhancements
+- **Language Server Protocol (LSP)** - Advanced IntelliSense for Enforce Script
 - Mod name tooltips in configuration files
 - Real-time configuration validation
 - Status bar integration for process monitoring
@@ -65,6 +66,13 @@ The documentation includes:
 - **Feature Requests**: [GitHub Discussions](https://github.com/orgs/devz-tools/discussions/categories/ideas)
 - **Documentation**: [devz-tools.github.io](https://devz-tools.github.io/)
 
+## 🔧 Developer Documentation
+
+For developers working on the extension:
+
+- **[AGENTS.md](AGENTS.md)** - Complete project context and architecture
+- **[LSP-INTEGRATION.md](LSP-INTEGRATION.md)** - Language Server Protocol implementation details
+
 ## 🤝 Contributing
 
 We welcome contributions from the DayZ modding community! 
@@ -72,6 +80,7 @@ We welcome contributions from the DayZ modding community!
 - **Report bugs** or **request features** via [GitHub Issues](https://github.com/devz-tools/vscode-extension/issues)
 - **Contribute code** via [Pull Requests](https://github.com/devz-tools/vscode-extension/pulls)
 - **Improve documentation** at [devz-tools.github.io](https://github.com/devz-tools/devz-tools.github.io)
+- **Contribute to LSP** at [enforce-script-lsp](https://github.com/devz-tools/enforce-script-lsp)
 
 ---
 
