@@ -61,16 +61,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
         
-      - name: Type check
-        run: pnpm run check-types
-        
-      - name: Lint code
-        run: pnpm run lint
-        
-      - name: Build LSP
-        run: pnpm run build:lsp
-        
-      - name: Build extension
+      - name: Build extension (includes type check, lint, CSS, LSP)
         run: pnpm run package
         
       - name: Run tests
