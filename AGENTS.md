@@ -76,7 +76,7 @@
 
 ### Build & Deployment
 - `scripts/swap-readme.ps1` - PowerShell script for README swapping during packaging
-- `scripts/build-lsp.ps1` - PowerShell script for building the Enforce Script LSP server (cross-platform compatible)
+- `scripts/build-lsp.ps1` - PowerShell script for building the Enforce Script LSP server (cross-platform compatible, copies binary to bin/)
 - `.github/workflows/` - GitHub Actions for CI/CD and publishing
   - `ci.yml` - Continuous integration workflow (runs on push/PR, includes Rust setup, LSP building, and comprehensive caching)
   - `publish.yml` - Publishing workflow (builds and publishes to VS Code Marketplace, includes LSP building and caching)
@@ -84,13 +84,18 @@
   - `extension.js` - Compiled extension code
   - `webview.js` - Compiled React application
   - `styles.css` - Compiled Tailwind CSS
+- `bin/` - Compiled binaries (included in VSIX package)
+  - `enforce-script-lsp.exe` - LSP server binary (Windows, copied from enforce-script-lsp/target/release/)
+  - `enforce-script-lsp` - LSP server binary (Linux/macOS, copied from enforce-script-lsp/target/release/)
+  - `.gitkeep` - Ensures directory is tracked in git
 
 ### LSP Integration
-- `enforce-script-lsp/` - Enforce Script Language Server Protocol implementation (git submodule)
+- `enforce-script-lsp/` - Enforce Script Language Server Protocol implementation (git submodule, excluded from VSIX)
   - Rust-based LSP server for Enforce Script language features
-  - Binary location: `enforce-script-lsp/target/release/enforce-script-lsp(.exe)`
+  - Source location only - binary is built here and copied to bin/
   - Provides: diagnostics, completion, hover, go-to-definition, find references, etc.
-  - Build with: `pnpm run build:lsp` or `cargo build --release` in submodule directory
+  - Build with: `pnpm run build:lsp` (automatically copies binary to bin/)
+  - Note: Entire folder excluded from VSIX package via .vscodeignore
 
 ### Test Environment
 - `test-workspace/` - Complete DayZ mod boilerplate for testing (git submodule)

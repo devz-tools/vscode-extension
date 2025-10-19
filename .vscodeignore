@@ -17,15 +17,4 @@ test-workspace
 .github
 webview-ui/**
 README-DEV-BACKUP.md
-enforce-script-lsp/src/**
-enforce-script-lsp/target/debug/**
-enforce-script-lsp/.git/**
-enforce-script-lsp/Cargo.toml
-enforce-script-lsp/Cargo.lock
-enforce-script-lsp/.gitignore
-enforce-script-lsp/AGENTS.md
-enforce-script-lsp/CONTRIBUTING.md
-enforce-script-lsp/IMPLEMENTATION.md
-enforce-script-lsp/TUTORIAL.md
-!enforce-script-lsp/target/release/enforce-script-lsp.exe
-!enforce-script-lsp/target/release/enforce-script-lsp
+enforce-script-lsp/**

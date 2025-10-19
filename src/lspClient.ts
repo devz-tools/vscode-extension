@@ -33,7 +33,7 @@ export async function activateLspClient(context: vscode.ExtensionContext): Promi
     if (!serverExecutable) {
         vscode.window.showWarningMessage(
             'Enforce Script LSP server not found. Language features will be limited. ' +
-            'Please build the LSP server by running "cargo build --release" in the enforce-script-lsp directory.'
+            'Please build the LSP server by running "pnpm run build:lsp".'
         );
         return;
     }
@@ -113,9 +113,9 @@ export async function deactivateLspClient(): Promise<void> {
 /**
  * Gets the path to the LSP server executable
  * 
- * Looks for the compiled binary in the enforce-script-lsp submodule:
- * - Windows: enforce-script-lsp/target/release/enforce-script-lsp.exe
- * - Unix: enforce-script-lsp/target/release/enforce-script-lsp
+ * Looks for the compiled binary in the bin directory:
+ * - Windows: bin/enforce-script-lsp.exe
+ * - Unix: bin/enforce-script-lsp
  * 
  * @param context - The VS Code extension context
  * @returns Path to the executable, or undefined if not found
@@ -129,12 +129,10 @@ function getLspServerExecutable(context: vscode.ExtensionContext): string | unde
         ? 'enforce-script-lsp.exe'
         : 'enforce-script-lsp';
 
-    // Path to the LSP server executable
+    // Path to the LSP server executable in bin directory
     const serverPath = path.join(
         extensionPath,
-        'enforce-script-lsp',
-        'target',
-        'release',
+        'bin',
         exeName
     );
 

@@ -1,87 +1,78 @@
-# DevZ Tools VSCode Extension
+# DevZ Tools
 
-A community-driven VS Code extension designed to streamline DayZ mod development, mission files, and server administration.
+A community VSCode extension for developing DayZ mods, mission files, and server experiences.
 
-## 📦 Installation
+## Features
 
-**Install from VS Code Marketplace:**
-- Open VS Code
-- Go to Extensions (`Ctrl+Shift+X`)
-- Search for "DevZ Tools"
-- Click Install
-
-**Or install directly from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=devz-tools.devz-tools)**
-
-## 🚀 Features
-
-### Core Development Tools
-- **PBO Packing** - Compile your mods into PBO format with one command
-- **Server & Client Management** - Start DayZ server and client simultaneously
-- **Data Management** - Clean server and client data for testing
-- **Mod Overview** - Get a summary of all configured mods
+- **Initialize Mod Boilerplate**: Quickly set up a new DayZ mod project with official boilerplate code
+- **Pack PBO**: Quickly pack your mod into a PBO file for DayZ
+- **Server & Client Management**: Start DayZ server and client together with one command
+- **Data Management**: Easily wipe server and client data for clean testing
+- **Directory Shortcuts**: Quick access to all DayZ-related directories
+- **Mod Tooltips**: Hover tooltips showing mod names in configuration files
+- **Mod Summary**: View a summary of all configured mods
+- **Consolidated Log Views**: Access various DayZ log files in real-time directly from VS Code
+- **Syntax Highlighting**: Enhanced syntax highlighting for DayZ .c and .cpp files
+- **Language Server Support**: Advanced IntelliSense, diagnostics, hover info, go-to-definition, and more for Enforce Script
 - **Types Editor** - Browse and edit DayZ types in a dedicated webview with search and filtering
 
-### Directory Shortcuts
-- Quick access to DayZ Client, Server, and Tools directories
-- Steam Workshop directory navigation
-- Project Drive (P:\\) management
+## Getting Started
 
-### Development Enhancements
-- **Language Server Protocol (LSP)** - Advanced IntelliSense for Enforce Script
-- Mod name tooltips in configuration files
-- Real-time configuration validation
-- Status bar integration for process monitoring
-- Comprehensive error handling and logging
+### Starting a New Mod Project
 
-## 📚 Documentation
+1. Create a new empty folder for your mod
+2. Initialize it as a git repository (`git init`)
+3. Open the folder in VS Code
+4. Run `DevZ: Initialize Mod Boilerplate` from the Command Palette (`Ctrl+Shift+P`)
+5. The official DayZ mod boilerplate will be cloned and set up automatically
+6. Reload the window when prompted to activate all DevZ Tools features
 
-For comprehensive setup guides, tutorials, and troubleshooting:
+### Using an Existing Mod
 
-**🌐 [Visit DevZ Tools Documentation](https://devz-tools.github.io/)**
+1. Open a DayZ mod workspace (must contain `src/config.cpp`)
+2. Configure your DayZ installation paths in VS Code settings
+3. Use the Command Palette (`Ctrl+Shift+P`) to access DevZ commands
 
-The documentation includes:
-- Installation and setup instructions
-- Feature walkthroughs and tutorials
-- Configuration reference
-- Troubleshooting guides
-- Community resources
+## Configuration
 
-## 🛠️ Requirements
+Configure the extension through VS Code settings (`Ctrl+,`):
 
-- **DayZ** (Steam version)
-- **DayZ Server** (Steam version)
-- **DayZ Tools** (Steam version)
-- **Windows 10/11** (PowerShell required)
+- **DayZ Client Directory**: Path to your DayZ client installation
+- **DayZ Server Directory**: Path to your DayZ server installation  
+- **DayZ Tools Directory**: Path to your DayZ Tools installation
+- **Steam Workshop Directory**: Path to Steam Workshop content for DayZ
+- **Project Drive Directory**: Path to extracted DayZ project files (P:\ drive)
+- **Mod Name**: Name of the mod you're developing
+- **Server Address**: IP and port for local server connection
+- **Additional Mods**: List of mod paths or Steam Workshop IDs to load
+- **Enable Mod Tooltips**: Show/hide mod name tooltips in config files
 
-## 🎯 Getting Started
+## Available Commands
 
-1. **Install the extension** from the VS Code Marketplace
-2. **Open a DayZ mod project** (must contain `src/config.cpp`)
-3. **Configure your paths** in VS Code settings (`devz-tools.*`)
-4. **Start developing!** Use the Command Palette (`Ctrl+Shift+P`) and search for "DevZ"
+Access these commands through the Command Palette (`Ctrl+Shift+P`):
 
-## 💬 Community & Support
+- `DevZ: Initialize Mod Boilerplate` - Set up a new mod project with official boilerplate code
+- `DevZ: Pack PBO` - Pack your mod into a PBO file
+- `DevZ: Start Server and Client` - Launch both server and client together
+- `DevZ: Wipe Server Data` - Clean server data for fresh testing
+- `DevZ: Wipe Client Data` - Clean client data for fresh testing
+- `DevZ: Open DayZ Client Directory` - Open client installation folder
+- `DevZ: Open DayZ Server Directory` - Open server installation folder
+- `DevZ: Open DayZ Tools Directory` - Open tools installation folder
+- `DevZ: Open DayZ Project Drive Directory` - Open project drive folder
+- `DevZ: Open Steam Workshop Directory` - Open workshop content folder
+- `DevZ: Show Mods Summary` - Display summary of configured mods
 
-- **Issues & Bug Reports**: [GitHub Issues](https://github.com/devz-tools/vscode-extension/issues)
-- **Feature Requests**: [GitHub Discussions](https://github.com/orgs/devz-tools/discussions/categories/ideas)
-- **Documentation**: [devz-tools.github.io](https://devz-tools.github.io/)
+## Requirements
 
-## 🔧 Developer Documentation
+- Git must be installed and available in your system PATH (required for boilerplate initialization)
+- DayZ client, server, and tools installed via Steam (for mod development and testing)
+- A DayZ mod workspace with `src/config.cpp` file (created automatically by Initialize Mod Boilerplate)
 
-For developers working on the extension:
+## Support
 
-- **[AGENTS.md](AGENTS.md)** - Complete project context and architecture
-- **[LSP-INTEGRATION.md](LSP-INTEGRATION.md)** - Language Server Protocol implementation details
-
-## 🤝 Contributing
-
-We welcome contributions from the DayZ modding community! 
-
-- **Report bugs** or **request features** via [GitHub Issues](https://github.com/devz-tools/vscode-extension/issues)
-- **Contribute code** via [Pull Requests](https://github.com/devz-tools/vscode-extension/pulls)
-- **Improve documentation** at [devz-tools.github.io](https://github.com/devz-tools/devz-tools.github.io)
-- **Contribute to LSP** at [enforce-script-lsp](https://github.com/devz-tools/enforce-script-lsp)
+For issues, feature requests, or contributions, visit our [GitHub repository](https://github.com/devz-tools/vscode-extension).
 
 ---
 
-**Made with ❤️ by and for the DayZ modding community**
+**Enjoy developing DayZ mods with DevZ Tools!** 🎮

@@ -21,24 +21,10 @@ jobs:
         with:
           submodules: recursive
         
-      - name: Setup Rust
+      - name: Setup Rust with caching
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: stable
-          cache: true
-        
-      - name: Cache Rust dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            enforce-script-lsp/target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('enforce-script-lsp/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-
         
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
@@ -102,24 +88,10 @@ jobs:
         with:
           submodules: recursive
         
-      - name: Setup Rust
+      - name: Setup Rust with caching
         uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           toolchain: stable
-          cache: true
-        
-      - name: Cache Rust dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            enforce-script-lsp/target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('enforce-script-lsp/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-
         
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -153,7 +125,7 @@ jobs:
       - name: Package extension
         run: |
           pnpm add -g @vscode/vsce
-          vsce package
+          vsce package --no-dependencies
           
       - name: Upload VSIX as artifact
         uses: actions/upload-artifact@v4

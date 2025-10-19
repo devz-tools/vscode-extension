@@ -4,3 +4,4 @@ out
 dist
 *.vsix
 README-DEV-BACKUP.md
+/bin

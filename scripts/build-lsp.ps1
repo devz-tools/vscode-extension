@@ -51,6 +51,16 @@ try {
             Write-Host "  Binary location: $exePath" -ForegroundColor Cyan
             $fileSize = (Get-Item $exePath).Length / 1MB
             Write-Host "  Binary size: $([math]::Round($fileSize, 2)) MB" -ForegroundColor Cyan
+            
+            # Copy binary to bin directory
+            $binDir = Join-Path $scriptDir "bin"
+            if (-not (Test-Path $binDir)) {
+                New-Item -ItemType Directory -Path $binDir -Force | Out-Null
+            }
+            
+            $destPath = Join-Path $binDir $exeName
+            Copy-Item -Path $exePath -Destination $destPath -Force
+            Write-Host "  Copied to: $destPath" -ForegroundColor Green
         } else {
             Write-Host "  Warning: Binary not found at expected location: $exePath" -ForegroundColor Yellow
         }

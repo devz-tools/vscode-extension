@@ -312,8 +312,8 @@
     "test": "vscode-test",
     "swap-readme:prepare": "pwsh -ExecutionPolicy Bypass -File scripts/swap-readme.ps1 prepare",
     "swap-readme:restore": "pwsh -ExecutionPolicy Bypass -File scripts/swap-readme.ps1 restore",
-    "vscode:package": "pnpm run package && pnpm run swap-readme:prepare && vsce package && pnpm run swap-readme:restore",
-    "vscode:publish": "pnpm run package && pnpm run swap-readme:prepare && vsce publish && pnpm run swap-readme:restore"
+    "vscode:package": "pnpm run package && pnpm run swap-readme:prepare && vsce package --no-dependencies && pnpm run swap-readme:restore",
+    "vscode:publish": "pnpm run package && pnpm run swap-readme:prepare && vsce publish --no-dependencies && pnpm run swap-readme:restore"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.14",
