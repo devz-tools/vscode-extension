@@ -198,13 +198,24 @@ jobs:
           $vsixFile = "artifacts/devz-tools-$($version.TrimStart('v')).vsix"
 
           Write-Host "🚀 Creating GitHub Release: $version"
+          Write-Host "   Looking for VSIX: $vsixFile"
 
-          $prereleaseFlag = if ("${{ inputs.prerelease }}" -eq "true") { "--prerelease" } else { "" }
+          # Verify VSIX file exists
+          if (-not (Test-Path $vsixFile)) {
+            Write-Host "❌ VSIX file not found: $vsixFile" -ForegroundColor Red
+            Write-Host "Available files in artifacts/:"
+            Get-ChildItem artifacts/ -Recurse | Format-Table FullName
+            exit 1
+          }
 
-          gh release create $version $vsixFile `
-            --title "Release $version" `
-            --generate-notes `
-            $prereleaseFlag
+          Write-Host "   ✓ Found VSIX file" -ForegroundColor Green
+
+          # Build command with conditional prerelease flag
+          if ("${{ inputs.prerelease }}" -eq "true") {
+            gh release create $version $vsixFile --title "Release $version" --generate-notes --prerelease
+          } else {
+            gh release create $version $vsixFile --title "Release $version" --generate-notes
+          }
 
           Write-Host "✅ GitHub Release created successfully!" -ForegroundColor Green
 
@@ -247,9 +258,22 @@ jobs:
           Write-Host "🚀 Publishing to VSCode Marketplace..."
           Write-Host "   Package: $vsixFile"
 
-          $prereleaseFlag = if ("${{ inputs.prerelease }}" -eq "true") { "--pre-release" } else { "" }
+          # Verify VSIX file exists
+          if (-not (Test-Path $vsixFile)) {
+            Write-Host "❌ VSIX file not found: $vsixFile" -ForegroundColor Red
+            Write-Host "Available files in artifacts/:"
+            Get-ChildItem artifacts/ -Recurse | Format-Table FullName
+            exit 1
+          }
 
-          vsce publish $prereleaseFlag --packagePath $vsixFile
+          Write-Host "   ✓ Found VSIX file" -ForegroundColor Green
+
+          # Publish with conditional prerelease flag
+          if ("${{ inputs.prerelease }}" -eq "true") {
+            vsce publish --pre-release --packagePath $vsixFile
+          } else {
+            vsce publish --packagePath $vsixFile
+          }
 
           Write-Host "✅ Successfully published to VSCode Marketplace!" -ForegroundColor Green
 
