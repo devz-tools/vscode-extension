@@ -12,19 +12,12 @@ jobs:
     
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [windows-latest]
         node-version: [22]
         
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
-        
-      - name: Setup Rust with caching
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          toolchain: stable
         
       - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
@@ -52,37 +45,19 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
         
-      - name: Build extension (includes type check, lint, CSS, LSP)
+      - name: Build extension (includes type check, lint, CSS, LSP download)
         run: pnpm run package
         
-      - name: Install test dependencies (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libnss3 libatk-bridge2.0-0 libdrm2 libgtk-3-0 libgbm1
-          
-      - name: Run tests (Linux)
-        if: runner.os == 'Linux'
-        run: xvfb-run -a pnpm test
-        
-      - name: Run tests (Windows/macOS)
-        if: runner.os != 'Linux'
+      - name: Run tests
         run: pnpm test
         
   package:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     needs: test
     
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
-        
-      - name: Setup Rust with caching
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          toolchain: stable
         
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -110,7 +85,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
         
-      - name: Package extension (includes LSP build)
+      - name: Package extension (includes LSP download)
         run: |
           pnpm add -g @vscode/vsce
           pnpm run vscode:package

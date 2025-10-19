@@ -2,9 +2,10 @@
   "name": "devz-tools",
   "displayName": "DevZ Tools",
   "description": "A community VSCode extension for developing DayZ mods, mission files, and server experiences.",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "repository": "https://github.com/devz-tools/vscode-extension",
   "publisher": "devz-tools",
+  "enforceLspVersion": "0.1.3",
   "engines": {
     "vscode": "^1.105.0"
   },
@@ -294,15 +295,16 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "pnpm run package",
+    "vscode:prepublish": "node esbuild.js --production",
     "compile": "pnpm run check-types && pnpm run lint && pnpm run build:css && node esbuild.js",
-    "package": "pnpm run check-types && pnpm run lint && pnpm run build:css && pnpm run build:lsp && node esbuild.js --production",
+    "package": "pnpm run check-types && pnpm run lint && pnpm run build:css && pnpm run download:lsp && node esbuild.js --production",
     "watch": "npm-run-all -p watch:*",
     "watch:esbuild": "node esbuild.js --watch",
     "watch:tsc": "tsc --noEmit --watch",
     "watch:css": "tailwindcss -i ./webview-ui/src/styles.css -o ./dist/styles.css --watch",
     "build:css": "tailwindcss -i ./webview-ui/src/styles.css -o ./dist/styles.css --minify",
-    "build:lsp": "node -e \"require('child_process').execSync(process.platform === 'win32' ? 'pwsh -ExecutionPolicy Bypass -File scripts/build-lsp.ps1' : 'cd enforce-script-lsp && cargo build --release', {stdio: 'inherit'})\"",
+    "download:lsp": "pwsh -ExecutionPolicy Bypass -File scripts/download-lsp.ps1",
+    "build:lsp": "echo 'Note: build:lsp is deprecated. LSP binaries are now downloaded from GitHub releases. Use download:lsp instead.' && pnpm run download:lsp",
     "check-types": "tsc --noEmit",
     "lint": "eslint src",
     "test": "vscode-test",

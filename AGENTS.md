@@ -76,10 +76,11 @@
 
 ### Build & Deployment
 - `scripts/swap-readme.ps1` - PowerShell script for README swapping during packaging
-- `scripts/build-lsp.ps1` - PowerShell script for building the Enforce Script LSP server (cross-platform compatible, copies binary to bin/)
+- `scripts/download-lsp.ps1` - PowerShell script for downloading the Enforce Script LSP server from GitHub releases (Windows x64 only)
+- `scripts/build-lsp.ps1` - Legacy script for building LSP from source (deprecated, kept for reference)
 - `.github/workflows/` - GitHub Actions for CI/CD and publishing
-  - `ci.yml` - Continuous integration workflow (runs on push/PR, includes Rust setup, LSP building, and comprehensive caching)
-  - `publish.yml` - Publishing workflow (builds and publishes to VS Code Marketplace, includes LSP building and caching)
+  - `ci.yml` - Continuous integration workflow (runs on Windows, downloads LSP binary, includes caching)
+  - `publish.yml` - Publishing workflow (builds and publishes to VS Code Marketplace on Windows, downloads LSP binary, includes caching)
 - `dist/` - Built extension files (generated)
   - `extension.js` - Compiled extension code
   - `webview.js` - Compiled React application
@@ -90,12 +91,16 @@
   - `.gitkeep` - Ensures directory is tracked in git
 
 ### LSP Integration
-- `enforce-script-lsp/` - Enforce Script Language Server Protocol implementation (git submodule, excluded from VSIX)
-  - Rust-based LSP server for Enforce Script language features
-  - Source location only - binary is built here and copied to bin/
-  - Provides: diagnostics, completion, hover, go-to-definition, find references, etc.
-  - Build with: `pnpm run build:lsp` (automatically copies binary to bin/)
-  - Note: Entire folder excluded from VSIX package via .vscodeignore
+- `enforce-script-lsp/` - Enforce Script Language Server Protocol implementation (git submodule, **DEPRECATED - REMOVED**)
+  - **Note**: This submodule has been removed from the project
+  - LSP binaries are now downloaded from GitHub releases instead of being built locally
+  - Version is specified in package.json `enforceLspVersion` field
+  - Download with: `pnpm run download:lsp` (downloads Windows x64 binary)
+  - Extension targets Windows x64 only
+  - See: https://github.com/devz-tools/enforce-script-lsp/releases
+- `bin/` - Compiled binaries (included in VSIX package)
+  - `enforce-script-lsp.exe` - LSP server binary (Windows x64, downloaded from GitHub releases)
+  - `.gitkeep` - Ensures directory is tracked in git
 
 ### Test Environment
 - `test-workspace/` - Complete DayZ mod boilerplate for testing (git submodule)
@@ -336,10 +341,11 @@ A comprehensive GUI editor for DayZ mission types.xml files with advanced featur
   - Functions and enums
   - Nested symbol structure
 - **Code Folding** - Smart folding for classes, methods, and blocks
-- **Auto-build Support** - LSP server compiled during extension build
-  - Requires Rust toolchain (cargo) to build from source
-  - Pre-built binaries included in VSIX package
-  - Build manually: `pnpm run build:lsp`
+- **Prebuilt Binaries** - LSP server downloaded from GitHub releases during extension build
+  - No Rust toolchain required - uses prebuilt binaries
+  - Version specified in package.json `enforceLspVersion` field
+  - Download manually: `pnpm run download:lsp`
+  - Windows x64 binary only (extension targets Windows only)
 
 **Note**: Enforce Script uses `.c` and `.cpp` file extensions exclusively (not `.h` headers)
 
@@ -395,8 +401,9 @@ The extension uses VS Code's configuration system with the prefix `devz-tools.*`
 ### Dependencies
 - Requires DayZ client, server, and tools installed via Steam
 - Expects DayZ mod project structure with `src/config.cpp`
-- Uses PowerShell for some operations (Windows-focused)
-- **Optional**: Rust toolchain (cargo) for building LSP server from source
+- Uses PowerShell for operations (Windows-focused)
+- **No build tools required**: LSP binaries are downloaded from GitHub releases
+- **Platform**: Windows x64 only
 
 ## Build System
 
@@ -409,17 +416,18 @@ The extension uses VS Code's configuration system with the prefix `devz-tools.*`
 
 ### Build Scripts
 **All scripts must be run with pnpm:**
-- `pnpm run compile` - Type check, lint, build CSS, and build extension + webview
+- `pnpm run compile` - Type check, lint, build CSS, and build extension + webview (development mode)
+- `pnpm run package` - Full production build (type check, lint, CSS, download LSP, build extension in production mode)
 - `pnpm run watch` - Development mode with file watching (TypeScript, esbuild, Tailwind CSS)
 - `pnpm run watch:esbuild` - Watch and rebuild extension + webview JS
 - `pnpm run watch:tsc` - Watch and type-check TypeScript
 - `pnpm run watch:css` - Watch and rebuild Tailwind CSS
 - `pnpm run build:css` - Build Tailwind CSS (minified)
-- `pnpm run build:lsp` - Build Enforce Script LSP server (cross-platform: uses PowerShell on Windows, cargo directly on Linux/macOS)
-- `pnpm run prepackage` - Automatically runs before package to build LSP (runs via npm lifecycle hook)
-- `pnpm run package` - Production build (automatically builds LSP via prepackage hook, then builds extension)
-- `pnpm run vscode:package` - Create VSIX with marketplace README (builds LSP, builds extension, swaps README, creates VSIX)
-- `pnpm run vscode:publish` - Publish to marketplace with README swapping (builds LSP, builds extension, swaps README, publishes)
+- `pnpm run download:lsp` - Download Enforce Script LSP server binary from GitHub releases (version specified in package.json)
+- `pnpm run build:lsp` - Deprecated alias for download:lsp (for backward compatibility)
+- `pnpm run vscode:package` - Create VSIX (runs package, swaps README, creates VSIX, restores README)
+- `pnpm run vscode:publish` - Publish to marketplace (runs package, swaps README, publishes, restores README)
+- `pnpm run vscode:prepublish` - Internal hook used by vsce (just runs esbuild, assumes everything else is done)
 
 ## README Management
 
