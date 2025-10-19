@@ -1,0 +1,309 @@
+name: "CD Release"
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (e.g., v1.0.0)"
+        required: true
+        type: string
+      prerelease:
+        description: "Mark as pre-release"
+        required: false
+        type: boolean
+        default: false
+      dry_run:
+        description: "Dry run (build only, no release)"
+        required: false
+        type: boolean
+        default: false
+      publish_marketplace:
+        description: "Publish to VSCode Marketplace"
+        required: false
+        type: boolean
+        default: true
+      create_github_release:
+        description: "Create GitHub Release"
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  # Verify version matches package.json
+  validate-version:
+    name: Validate Version
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Check version matches package.json
+        shell: pwsh
+        run: |
+          Write-Host "🔍 Validating version input..."
+
+          # Remove 'v' prefix from input version if present
+          $inputVersion = "${{ inputs.version }}"
+          $inputVersion = $inputVersion.TrimStart('v')
+
+          # Extract version from package.json
+          $packageJson = Get-Content package.json | ConvertFrom-Json
+          $packageVersion = $packageJson.version
+
+          Write-Host "📋 Input version: $inputVersion"
+          Write-Host "📦 Package.json version: $packageVersion"
+
+          if ($inputVersion -ne $packageVersion) {
+            Write-Host "❌ Version mismatch!" -ForegroundColor Red
+            Write-Host "   Input version: $inputVersion"
+            Write-Host "   Package.json version: $packageVersion"
+            Write-Host ""
+            Write-Host "Please ensure the version you entered matches the version in package.json"
+            Write-Host "Either update package.json to version $inputVersion and commit, or use version $packageVersion"
+            exit 1
+          }
+
+          Write-Host "✅ Version matches package.json!" -ForegroundColor Green
+
+  # Verify CI has passed before proceeding
+  check-ci:
+    name: Verify CI Passed
+    needs: validate-version
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Check CI Status via GitHub API
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          Write-Host "🔍 Checking CI status for commit: ${{ github.sha }}"
+
+          # Get all check runs for this commit
+          $checks = gh api repos/${{ github.repository }}/commits/${{ github.sha }}/check-runs --jq '.check_runs[] | select(.name | test("Build Project|Run Tests|Check Type Safety|Run ESLint Lints|Build VSIX Package")) | {name: .name, conclusion: .conclusion}'
+
+          if ($checks) {
+            Write-Host "CI Check Results:"
+            $checks | ForEach-Object {
+              Write-Host "  $($_.name): $($_.conclusion)"
+            }
+          }
+
+          # Check if all required checks passed
+          $failedChecks = gh api repos/${{ github.repository }}/commits/${{ github.sha }}/check-runs --jq '[.check_runs[] | select(.name | test("Build Project|Run Tests|Check Type Safety|Run ESLint Lints|Build VSIX Package")) | select(.conclusion != "success")] | length'
+
+          if ([int]$failedChecks -gt 0) {
+            Write-Host "❌ CI checks have not all passed. Please ensure all CI checks are green before releasing." -ForegroundColor Red
+            exit 1
+          }
+
+          Write-Host "✅ All CI checks passed!" -ForegroundColor Green
+
+  # Build VSIX package for release
+  build-vsix:
+    name: Build VSIX Package
+    needs: check-ci
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Cache pnpm Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install vsce
+        run: pnpm add -g @vscode/vsce
+
+      - name: Build VSIX Package
+        shell: pwsh
+        run: |
+          Write-Host "📦 Building VSIX package..."
+
+          # Remove 'v' prefix from version
+          $version = "${{ inputs.version }}".TrimStart('v')
+
+          # Build package with version
+          pnpm run package
+          pnpm run swap-readme:prepare
+          vsce package $version --no-dependencies
+
+          $vsixFile = "devz-tools-$version.vsix"
+
+          Write-Host "✅ Package created: $vsixFile" -ForegroundColor Green
+
+          # Verify package exists
+          if (Test-Path $vsixFile) {
+            $fileInfo = Get-Item $vsixFile
+            Write-Host "   Size: $([math]::Round($fileInfo.Length / 1MB, 2)) MB"
+
+            # Output filename for next steps
+            echo "VSIX_FILE=$vsixFile" >> $env:GITHUB_ENV
+            echo "VERSION=$version" >> $env:GITHUB_ENV
+          } else {
+            Write-Host "❌ Failed to create VSIX package" -ForegroundColor Red
+            exit 1
+          }
+
+      - name: Restore README
+        if: always()
+        run: pnpm run swap-readme:restore
+
+      - name: Upload VSIX Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: devz-tools-${{ inputs.version }}
+          path: "*.vsix"
+          retention-days: 90
+
+  # Create GitHub Release
+  create-github-release:
+    name: Create GitHub Release
+    needs: build-vsix
+    if: ${{ !inputs.dry_run && inputs.create_github_release }}
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Download VSIX Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: devz-tools-${{ inputs.version }}
+          path: artifacts/
+
+      - name: Create GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $version = "${{ inputs.version }}"
+          $vsixFile = "artifacts/devz-tools-$($version.TrimStart('v')).vsix"
+
+          Write-Host "🚀 Creating GitHub Release: $version"
+
+          $prereleaseFlag = if ("${{ inputs.prerelease }}" -eq "true") { "--prerelease" } else { "" }
+
+          gh release create $version $vsixFile `
+            --title "Release $version" `
+            --generate-notes `
+            $prereleaseFlag
+
+          Write-Host "✅ GitHub Release created successfully!" -ForegroundColor Green
+
+  # Publish to VSCode Marketplace
+  publish-marketplace:
+    name: Publish to VSCode Marketplace
+    needs: build-vsix
+    if: ${{ !inputs.dry_run && inputs.publish_marketplace }}
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Install vsce
+        run: pnpm add -g @vscode/vsce
+
+      - name: Download VSIX Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: devz-tools-${{ inputs.version }}
+          path: artifacts/
+
+      - name: Publish to VSCode Marketplace
+        shell: pwsh
+        env:
+          VSCE_PAT: ${{ secrets.VSCODE_MARKETPLACE_TOKEN }}
+        run: |
+          $version = "${{ inputs.version }}".TrimStart('v')
+          $vsixFile = "artifacts/devz-tools-$version.vsix"
+
+          Write-Host "🚀 Publishing to VSCode Marketplace..."
+          Write-Host "   Package: $vsixFile"
+
+          $prereleaseFlag = if ("${{ inputs.prerelease }}" -eq "true") { "--pre-release" } else { "" }
+
+          vsce publish $prereleaseFlag --packagePath $vsixFile
+
+          Write-Host "✅ Successfully published to VSCode Marketplace!" -ForegroundColor Green
+
+  # Summary for dry runs
+  dry-run-summary:
+    name: Dry Run Summary
+    needs: build-vsix
+    if: ${{ inputs.dry_run }}
+    runs-on: windows-latest
+    steps:
+      - name: Download VSIX Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: devz-tools-${{ inputs.version }}
+          path: artifacts/
+
+      - name: Display Summary
+        shell: pwsh
+        run: |
+          $version = "${{ inputs.version }}".TrimStart('v')
+          $vsixFile = "artifacts/devz-tools-$version.vsix"
+
+          Write-Host ""
+          Write-Host "═══════════════════════════════════════" -ForegroundColor Cyan
+          Write-Host "🧪 DRY RUN MODE - No releases created" -ForegroundColor Yellow
+          Write-Host "═══════════════════════════════════════" -ForegroundColor Cyan
+          Write-Host ""
+          Write-Host "📦 VSIX Package: $vsixFile" -ForegroundColor Green
+
+          if (Test-Path $vsixFile) {
+            $fileInfo = Get-Item $vsixFile
+            Write-Host "   Size: $([math]::Round($fileInfo.Length / 1MB, 2)) MB" -ForegroundColor Gray
+          }
+
+          Write-Host ""
+          Write-Host "Actions that would be performed:" -ForegroundColor Cyan
+
+          if ("${{ inputs.create_github_release }}" -eq "true") {
+            $releaseType = if ("${{ inputs.prerelease }}" -eq "true") { "pre-release" } else { "release" }
+            Write-Host "  ✓ Create GitHub $releaseType ${{ inputs.version }}" -ForegroundColor Green
+          }
+
+          if ("${{ inputs.publish_marketplace }}" -eq "true") {
+            $marketplaceType = if ("${{ inputs.prerelease }}" -eq "true") { "pre-release" } else { "stable" }
+            Write-Host "  ✓ Publish to VSCode Marketplace ($marketplaceType)" -ForegroundColor Green
+          }
+
+          Write-Host ""
+          Write-Host "To publish manually:" -ForegroundColor Cyan
+          Write-Host "  GitHub: gh release create ${{ inputs.version }} $vsixFile" -ForegroundColor Gray
+          Write-Host "  Marketplace: vsce publish --packagePath $vsixFile" -ForegroundColor Gray
+          Write-Host ""

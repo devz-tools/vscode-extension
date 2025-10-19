@@ -1,96 +1,258 @@
-name: CI
+name: "CI Checks"
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
-  test:
-    runs-on: ${{ matrix.os }}
-    
-    strategy:
-      matrix:
-        os: [windows-latest]
-        node-version: [22]
-        
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        
-      - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: latest
-          
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-          
-      - name: Cache pnpm dependencies
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-          
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-        
-      - name: Build extension (includes type check, lint, CSS, LSP download)
-        run: pnpm run package
-        
-      - name: Run tests
-        run: pnpm test
-        
-  package:
+  # Ensure compilation with no warnings or errors
+  build:
+    name: Build Project
     runs-on: windows-latest
-    needs: test
-    
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        
+      - uses: actions/checkout@v5
+
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '22'
-          
+          node-version: "22"
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: latest
-          
+
       - name: Get pnpm store directory
         shell: bash
         run: |
           echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-          
-      - name: Cache pnpm dependencies
+
+      - name: Cache pnpm Dependencies
         uses: actions/cache@v4
         with:
           path: ${{ env.STORE_PATH }}
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
-        
-      - name: Install dependencies
+
+      - name: Cache Build Artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            dist/
+            bin/
+          key: ${{ runner.os }}-build-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('src/**/*.ts', 'webview-ui/**/*.tsx', 'webview-ui/**/*.ts') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ hashFiles('**/pnpm-lock.yaml') }}-
+            ${{ runner.os }}-build-
+
+      - name: Install Dependencies
         run: pnpm install --frozen-lockfile
-        
-      - name: Package extension (includes LSP download)
+
+      - name: Build Project
+        run: pnpm run compile
+
+  # Run all tests
+  test:
+    needs: build
+    name: Run Tests
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Restore pnpm Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Get pnpm store directory
+        shell: bash
         run: |
-          pnpm add -g @vscode/vsce
-          pnpm run vscode:package
-          
-      - name: Upload VSIX as artifact
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Restore Build Artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            dist/
+            bin/
+          key: ${{ runner.os }}-build-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('src/**/*.ts', 'webview-ui/**/*.tsx', 'webview-ui/**/*.ts') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ hashFiles('**/pnpm-lock.yaml') }}-
+            ${{ runner.os }}-build-
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run Tests
+        run: pnpm test
+
+  # Check code type safety
+  typecheck:
+    needs: build
+    name: Check Type Safety
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Restore pnpm Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Restore Build Artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            dist/
+            bin/
+          key: ${{ runner.os }}-build-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('src/**/*.ts', 'webview-ui/**/*.tsx', 'webview-ui/**/*.ts') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ hashFiles('**/pnpm-lock.yaml') }}-
+            ${{ runner.os }}-build-
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check TypeScript Types
+        run: pnpm run check-types
+
+  # Run ESLint linting
+  lint:
+    needs: build
+    name: Run ESLint Lints
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Restore pnpm Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Restore Build Artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            dist/
+            bin/
+          key: ${{ runner.os }}-build-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('src/**/*.ts', 'webview-ui/**/*.tsx', 'webview-ui/**/*.ts') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ hashFiles('**/pnpm-lock.yaml') }}-
+            ${{ runner.os }}-build-
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run ESLint
+        run: pnpm run lint
+
+  # Verify VSIX package can be built
+  package:
+    needs: build
+    name: Build VSIX Package
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Restore pnpm Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Restore Build Artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            dist/
+            bin/
+          key: ${{ runner.os }}-build-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('src/**/*.ts', 'webview-ui/**/*.tsx', 'webview-ui/**/*.ts') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ hashFiles('**/pnpm-lock.yaml') }}-
+            ${{ runner.os }}-build-
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install vsce
+        run: pnpm add -g @vscode/vsce
+
+      - name: Build VSIX Package
+        run: pnpm run vscode:package
+
+      - name: Upload VSIX as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: vsix-package-${{ github.sha }}

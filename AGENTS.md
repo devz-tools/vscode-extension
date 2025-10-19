@@ -79,15 +79,15 @@
 - `scripts/download-lsp.ps1` - PowerShell script for downloading the Enforce Script LSP server from GitHub releases (Windows x64 only)
 - `scripts/build-lsp.ps1` - Legacy script for building LSP from source (deprecated, kept for reference)
 - `.github/workflows/` - GitHub Actions for CI/CD and publishing
-  - `ci.yml` - Continuous integration workflow (runs on Windows, downloads LSP binary, includes caching)
-  - `publish.yml` - Publishing workflow (builds and publishes to VS Code Marketplace on Windows, downloads LSP binary, includes caching)
+  - `ci.yml` - Continuous integration workflow with parallel jobs for build, test, typecheck, lint, and package verification
+  - `cd.yml` - Continuous deployment workflow for creating GitHub releases and publishing to VS Code Marketplace
+  - `README.md` - Comprehensive documentation of CI/CD workflows, usage examples, and troubleshooting
 - `dist/` - Built extension files (generated)
   - `extension.js` - Compiled extension code
   - `webview.js` - Compiled React application
   - `styles.css` - Compiled Tailwind CSS
 - `bin/` - Compiled binaries (included in VSIX package)
-  - `enforce-script-lsp.exe` - LSP server binary (Windows, copied from enforce-script-lsp/target/release/)
-  - `enforce-script-lsp` - LSP server binary (Linux/macOS, copied from enforce-script-lsp/target/release/)
+  - `enforce-script-lsp.exe` - LSP server binary (Windows x64, downloaded from GitHub releases)
   - `.gitkeep` - Ensures directory is tracked in git
 
 ### LSP Integration
