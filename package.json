@@ -296,8 +296,11 @@
   },
   "scripts": {
     "vscode:prepublish": "node esbuild.js --production",
+    "clean": "pwsh -ExecutionPolicy Bypass -File scripts/clean.ps1 all",
+    "clean:dist": "pwsh -ExecutionPolicy Bypass -File scripts/clean.ps1 dist",
+    "clean:bin": "pwsh -ExecutionPolicy Bypass -File scripts/clean.ps1 bin",
     "compile": "pnpm run check-types && pnpm run lint && pnpm run build:css && node esbuild.js",
-    "package": "pnpm run check-types && pnpm run lint && pnpm run build:css && pnpm run download:lsp && node esbuild.js --production",
+    "package": "pnpm run clean:dist && pnpm run check-types && pnpm run lint && pnpm run build:css && pnpm run download:lsp && node esbuild.js --production",
     "watch": "npm-run-all -p watch:*",
     "watch:esbuild": "node esbuild.js --watch",
     "watch:tsc": "tsc --noEmit --watch",

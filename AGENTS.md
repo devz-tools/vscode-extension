@@ -75,6 +75,7 @@
 - `postcss.config.js` - PostCSS configuration for Tailwind processing
 
 ### Build & Deployment
+- `scripts/clean.ps1` - PowerShell script for cleaning build artifacts (dist/ and bin/ directories)
 - `scripts/swap-readme.ps1` - PowerShell script for README swapping during packaging
 - `scripts/download-lsp.ps1` - PowerShell script for downloading the Enforce Script LSP server from GitHub releases (Windows x64 only)
 - `scripts/build-lsp.ps1` - Legacy script for building LSP from source (deprecated, kept for reference)
@@ -416,8 +417,11 @@ The extension uses VS Code's configuration system with the prefix `devz-tools.*`
 
 ### Build Scripts
 **All scripts must be run with pnpm:**
+- `pnpm run clean` - Remove dist/ and bin/ directories to ensure clean builds
+- `pnpm run clean:dist` - Remove only dist/ directory (compiled code)
+- `pnpm run clean:bin` - Remove only bin/ directory (LSP binaries)
 - `pnpm run compile` - Type check, lint, build CSS, and build extension + webview (development mode)
-- `pnpm run package` - Full production build (type check, lint, CSS, download LSP, build extension in production mode)
+- `pnpm run package` - Full production build (cleans dist/, type check, lint, CSS, download LSP, build extension in production mode)
 - `pnpm run watch` - Development mode with file watching (TypeScript, esbuild, Tailwind CSS)
 - `pnpm run watch:esbuild` - Watch and rebuild extension + webview JS
 - `pnpm run watch:tsc` - Watch and type-check TypeScript

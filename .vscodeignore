@@ -17,6 +17,3 @@
 
 # Include package manifest
 !package.json
-
-# Explicitly exclude source maps even from dist
-dist/**/*.map
