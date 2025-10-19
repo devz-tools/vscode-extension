@@ -1,20 +1,22 @@
-.vscode/**
-.vscode-test/**
-out/**
-node_modules/**
-src/**
-.gitignore
-.yarnrc
-esbuild.js
-vsc-extension-quickstart.md
-**/tsconfig.json
-**/eslint.config.mjs
-**/*.map
-**/*.ts
-**/.vscode-test.*
-test-workspace
-*.vsix
-.github
-webview-ui/**
-README-DEV-BACKUP.md
-enforce-script-lsp/**
+# Whitelist approach: Exclude everything by default, then include only what's needed
+**
+
+# Include compiled extension code
+!dist/**
+
+# Include LSP server binaries
+!bin/**
+
+# Include language support files
+!syntaxes/**
+!language-configuration.json
+
+# Include documentation
+!LICENSE
+!README.md
+
+# Include package manifest
+!package.json
+
+# Explicitly exclude source maps even from dist
+dist/**/*.map
